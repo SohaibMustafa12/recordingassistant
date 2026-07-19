@@ -77,25 +77,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "RecAssistant — ERLC Recording Crew Assistant" },
+      { title: "RecAssistant — Login" },
       {
         name: "description",
         content:
-          "The ultimate Discord bot for ERLC YouTubers to manage their recording crew: scheduling, attendance, and roster in one dashboard.",
+          "The Ultimate Recording Crew Assistant for ERLC YouTubers. Sign in with Discord to manage your crew.",
       },
       { name: "theme-color", content: "#0f1020" },
-      { property: "og:title", content: "RecAssistant — ERLC Recording Crew Assistant" },
+      { property: "og:title", content: "RecAssistant — Login" },
       {
         property: "og:description",
         content:
-          "Schedule shoots, track attendance, and manage your ERLC recording crew from one command center.",
+          "The Ultimate Recording Crew Assistant for ERLC YouTubers. Sign in with Discord to manage your crew.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "RecAssistant — Login" },
+      { name: "twitter:description", content: "The Ultimate Recording Crew Assistant for ERLC YouTubers. Sign in with Discord to manage your crew." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/36yp9q3nfFcVv60p1i8qyLeff8x2/social-images/social-1784455239949-porsche-911-gt3-3840x2160-25773.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/36yp9q3nfFcVv60p1i8qyLeff8x2/social-images/social-1784455239949-porsche-911-gt3-3840x2160-25773.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

@@ -12,11 +12,11 @@ export const Route = createFileRoute("/")({
         content:
           "The Ultimate Recording Crew Assistant for ERLC YouTubers. Sign in with Discord to manage your crew.",
       },
-      { property: "og:title", content: "RecAssistant — Discord Bot for ERLC Crews" },
+      { property: "og:title", content: "RecAssistant — Login" },
       {
         property: "og:description",
         content:
-          "Schedule shoots, track attendance, and manage your recording crew from one command center.",
+          "The Ultimate Recording Crew Assistant for ERLC YouTubers. Sign in with Discord to manage your crew.",
       },
       { property: "og:type", content: "website" },
     ],
