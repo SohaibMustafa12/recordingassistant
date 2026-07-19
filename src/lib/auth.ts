@@ -35,4 +35,4 @@ export function useAuth() {
 
 export const DISCORD_OAUTH_URL =
   (import.meta.env.VITE_DISCORD_OAUTH_URL as string | undefined) ??
-  "https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&response_type=code&redirect_uri=YOUR_REDIRECT_URI&scope=identify+guilds";
+  "https://discord.com/oauth2/authorize?client_id=1528299078914543758&response_type=code&scope=identify%20guilds";
