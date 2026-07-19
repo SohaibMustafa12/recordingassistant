@@ -35,5 +35,5 @@ export function useAuth() {
 
 export const DISCORD_OAUTH_URL =
   (import.meta.env.VITE_DISCORD_OAUTH_URL as string | undefined) ??
-  "https://discord.com/oauth2/authorize?client_id=1528299078914543758&response_type=code&scope=identify%20guilds&redirect_uri=https%3A%2F%2Frecordingassistant.lovable.app";
+  "https://discord.com/oauth2/authorize?client_id=1528299078914543758&response_type=code&scope=identify+guilds&redirect_uri=https://recordingassistant.lovable.app";
 
