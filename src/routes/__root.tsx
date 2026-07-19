@@ -94,8 +94,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "RecAssistant — Login" },
       { name: "twitter:description", content: "The Ultimate Recording Crew Assistant for ERLC YouTubers. Sign in with Discord to manage your crew." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/36yp9q3nfFcVv60p1i8qyLeff8x2/social-images/social-1784455239949-porsche-911-gt3-3840x2160-25773.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/36yp9q3nfFcVv60p1i8qyLeff8x2/social-images/social-1784455239949-porsche-911-gt3-3840x2160-25773.webp" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/70b725e9-74dc-4990-a3a3-84cfb0f111e9" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/70b725e9-74dc-4990-a3a3-84cfb0f111e9" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -105,6 +105,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap",
       },
+      { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
     ],
   }),
   shellComponent: RootShell,
