@@ -9,38 +9,145 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as DashRouteImport } from './routes/_dash'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashSettingsRouteImport } from './routes/_dash/settings'
+import { Route as DashSchedulingRouteImport } from './routes/_dash/scheduling'
+import { Route as DashOverviewRouteImport } from './routes/_dash/overview'
+import { Route as DashAttendanceRouteImport } from './routes/_dash/attendance'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashRoute = DashRouteImport.update({
+  id: '/_dash',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashSettingsRoute = DashSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashSchedulingRoute = DashSchedulingRouteImport.update({
+  id: '/scheduling',
+  path: '/scheduling',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashOverviewRoute = DashOverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashAttendanceRoute = DashAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => DashRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/attendance': typeof DashAttendanceRoute
+  '/overview': typeof DashOverviewRoute
+  '/scheduling': typeof DashSchedulingRoute
+  '/settings': typeof DashSettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/attendance': typeof DashAttendanceRoute
+  '/overview': typeof DashOverviewRoute
+  '/scheduling': typeof DashSchedulingRoute
+  '/settings': typeof DashSettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_dash': typeof DashRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/_dash/attendance': typeof DashAttendanceRoute
+  '/_dash/overview': typeof DashOverviewRoute
+  '/_dash/scheduling': typeof DashSchedulingRoute
+  '/_dash/settings': typeof DashSettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/privacy'
+    | '/terms'
+    | '/attendance'
+    | '/overview'
+    | '/scheduling'
+    | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/privacy'
+    | '/terms'
+    | '/attendance'
+    | '/overview'
+    | '/scheduling'
+    | '/settings'
+  id:
+    | '__root__'
+    | '/'
+    | '/_dash'
+    | '/privacy'
+    | '/terms'
+    | '/_dash/attendance'
+    | '/_dash/overview'
+    | '/_dash/scheduling'
+    | '/_dash/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashRoute: typeof DashRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_dash': {
+      id: '/_dash'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof DashRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +155,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_dash/settings': {
+      id: '/_dash/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof DashSettingsRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/scheduling': {
+      id: '/_dash/scheduling'
+      path: '/scheduling'
+      fullPath: '/scheduling'
+      preLoaderRoute: typeof DashSchedulingRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/overview': {
+      id: '/_dash/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof DashOverviewRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/attendance': {
+      id: '/_dash/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof DashAttendanceRouteImport
+      parentRoute: typeof DashRoute
+    }
   }
 }
 
+interface DashRouteChildren {
+  DashAttendanceRoute: typeof DashAttendanceRoute
+  DashOverviewRoute: typeof DashOverviewRoute
+  DashSchedulingRoute: typeof DashSchedulingRoute
+  DashSettingsRoute: typeof DashSettingsRoute
+}
+
+const DashRouteChildren: DashRouteChildren = {
+  DashAttendanceRoute: DashAttendanceRoute,
+  DashOverviewRoute: DashOverviewRoute,
+  DashSchedulingRoute: DashSchedulingRoute,
+  DashSettingsRoute: DashSettingsRoute,
+}
+
+const DashRouteWithChildren = DashRoute._addFileChildren(DashRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashRoute: DashRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
