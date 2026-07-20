@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createFileRoute, Link, Navigate, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth, loginWithDiscord } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { ShieldLogo } from "@/components/ShieldLogo";
@@ -18,13 +18,20 @@ function DiscordIcon({ className }: { className?: string }) {
 }
 
 function LoginPage() {
-  const { authed, ready, user } = useAuth();
+  const { authed, ready } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const handleRedirect = async () => {
-    if (!user?.id) return;
     setLoading(true);
+    
+    // Get the user from Supabase directly instead of the hook
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
     
     const { data: memberData } = await supabase
       .from('crew_members')
