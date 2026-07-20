@@ -1,10 +1,11 @@
+// Force rebuild 
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
-
-export default function OnboardingPage() {
+ 
+export default function OnboardingPage()  {
   const navigate = useNavigate();
   const [customKey, setCustomKey] = useState("");
   const [loading, setLoading] = useState(false);
