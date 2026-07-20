@@ -12,11 +12,11 @@ export default function OnboardingPage() {
   const handleJoin = async () => {
     setLoading(true);
     
-    // 1. Find the guild that matches the key
+    // 1. Find the guild using your existing 'guild_setting' table and 'join_code' column
     const { data: guild, error: guildError } = await supabase
-      .from("guilds")
+      .from("guild_setting")
       .select("guild_id")
-      .eq("custom_key", customKey)
+      .eq("join_code", customKey)
       .maybeSingle();
 
     if (guild) {
