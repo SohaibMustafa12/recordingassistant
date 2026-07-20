@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Navigate, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useAuth, setAuthed, DISCORD_OAUTH_URL } from "@/lib/auth";
+import { useAuth, loginWithDiscord } from "@/lib/auth"; // Updated imports
 import { ShieldLogo } from "@/components/ShieldLogo";
 import { Button } from "@/components/ui/button";
 
@@ -10,14 +10,12 @@ export const Route = createFileRoute("/")({
       { title: "RecAssistant — Login" },
       {
         name: "description",
-        content:
-          "The Ultimate Recording Crew Assistant for ERLC YouTubers. Sign in with Discord to manage your crew.",
+        content: "The Ultimate Recording Crew Assistant for ERLC YouTubers. Sign in with Discord to manage your crew.",
       },
       { property: "og:title", content: "RecAssistant — Login" },
       {
         property: "og:description",
-        content:
-          "The Ultimate Recording Crew Assistant for ERLC YouTubers. Sign in with Discord to manage your crew.",
+        content: "The Ultimate Recording Crew Assistant for ERLC YouTubers. Sign in with Discord to manage your crew.",
       },
       { property: "og:type", content: "website" },
     ],
@@ -37,32 +35,10 @@ function LoginPage() {
   const { authed, ready } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    if (!code) return;
-
-    // Cleanly wipe the code from the URL bar immediately so it can never re-trigger
-    window.history.replaceState({}, document.title, window.location.pathname);
-
-    // Set authenticated state and route to dashboard
-    setAuthed(true);
-    void navigate({ to: "/overview", replace: true });
-  }, [navigate]);
-
   if (ready && authed) return <Navigate to="/overview" replace />;
-
-  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("code")) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="text-sm text-muted-foreground animate-pulse">Completing Discord login…</div>
-      </div>
-    );
-  }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
-      {/* Ambient background */}
       <div className="pointer-events-none absolute inset-0 bg-hero" />
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.05]"
@@ -70,8 +46,7 @@ function LoginPage() {
           backgroundImage:
             "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
           backgroundSize: "56px 56px",
-          maskImage:
-            "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+          maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
         }}
       />
 
@@ -83,61 +58,33 @@ function LoginPage() {
               <ShieldLogo className="h-24 w-24 drop-shadow-[0_10px_30px_rgba(88,101,242,0.45)]" />
             </div>
 
-            <h1 className="mt-6 font-display text-3xl font-bold tracking-tight">
-              RecAssistant
-            </h1>
+            <h1 className="mt-6 font-display text-3xl font-bold tracking-tight">RecAssistant</h1>
             <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
               The Ultimate Recording Crew Assistant for ERLC YouTubers.
             </p>
 
             <div className="mt-8 w-full">
-              <a
-                href={DISCORD_OAUTH_URL}
+              <Button
+                onClick={loginWithDiscord}
                 className="group relative inline-flex h-12 w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-discord font-semibold text-discord-foreground shadow-[0_10px_30px_-8px_rgba(88,101,242,0.7)] transition-all hover:brightness-110 active:scale-[0.98]"
               >
                 <DiscordIcon className="h-5 w-5" />
                 <span>Log In with Discord</span>
-              </a>
-
-              <div className="mt-3 flex items-center gap-3 text-[11px] text-muted-foreground">
-                <div className="h-px flex-1 bg-border" />
-                <span className="uppercase tracking-widest">Demo</span>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-
-              <Button
-                variant="ghost"
-                className="mt-3 h-10 w-full text-xs text-muted-foreground hover:text-foreground"
-                onClick={() => setAuthed(true)}
-              >
-                Preview the dashboard →
               </Button>
             </div>
 
             <div className="mt-8 grid w-full grid-cols-3 gap-3 text-[10px] uppercase tracking-widest text-muted-foreground">
-              <div className="rounded-lg border border-border/60 bg-background/40 px-2 py-3">
-                Scheduling
-              </div>
-              <div className="rounded-lg border border-border/60 bg-background/40 px-2 py-3">
-                Attendance
-              </div>
-              <div className="rounded-lg border border-border/60 bg-background/40 px-2 py-3">
-                Roster
-              </div>
+              <div className="rounded-lg border border-border/60 bg-background/40 px-2 py-3">Scheduling</div>
+              <div className="rounded-lg border border-border/60 bg-background/40 px-2 py-3">Attendance</div>
+              <div className="rounded-lg border border-border/60 bg-background/40 px-2 py-3">Roster</div>
             </div>
           </div>
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
           By signing in you agree to our{" "}
-          <Link to="/terms" className="text-foreground/80 underline underline-offset-4 hover:text-foreground">
-            Terms
-          </Link>{" "}
-          &{" "}
-          <Link to="/privacy" className="text-foreground/80 underline underline-offset-4 hover:text-foreground">
-            Privacy Policy
-          </Link>
-          .
+          <Link to="/terms" className="text-foreground/80 underline underline-offset-4 hover:text-foreground">Terms</Link> &{" "}
+          <Link to="/privacy" className="text-foreground/80 underline underline-offset-4 hover:text-foreground">Privacy Policy</Link>.
         </p>
       </div>
     </div>
