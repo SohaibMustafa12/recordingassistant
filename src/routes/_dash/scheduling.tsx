@@ -1,22 +1,91 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { CalendarClock, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CalendarClock, Plus, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_dash/scheduling")({
   head: () => ({ meta: [{ title: "Scheduling Center — RecAssistant" }] }),
   component: Scheduling,
 });
 
+type Shoot = { id: string; title: string; when: string; description: string };
+
+const STORAGE_KEY = "recassistant:shoots";
+
+function loadShoots(): Shoot[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function formatWhen(iso: string) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function Scheduling() {
   const [title, setTitle] = useState("");
   const [dt, setDt] = useState("");
   const [desc, setDesc] = useState("");
-  const shoots: { id: string; title: string; when: string }[] = [];
+  const [shoots, setShoots] = useState<Shoot[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setShoots(loadShoots());
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(shoots));
+  }, [shoots, hydrated]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !dt) {
+      toast.error("Add a video title and date/time to schedule a shoot.");
+      return;
+    }
+    const shoot: Shoot = {
+      id:
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      title: title.trim(),
+      when: dt,
+      description: desc.trim(),
+    };
+    setShoots((prev) =>
+      [...prev, shoot].sort((a, b) => a.when.localeCompare(b.when)),
+    );
+    setTitle("");
+    setDt("");
+    setDesc("");
+    toast.success("Shoot scheduled");
+  };
+
+  const removeShoot = (id: string) => {
+    setShoots((prev) => prev.filter((s) => s.id !== id));
+  };
 
   return (
     <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-5">
@@ -29,12 +98,7 @@ function Scheduling() {
         </div>
 
         <Card className="border-border/60 bg-panel p-6">
-          <form
-            className="space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-          >
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label htmlFor="title">Video Title</Label>
               <Input
@@ -91,9 +155,28 @@ function Scheduling() {
           ) : (
             <ul className="space-y-3">
               {shoots.map((s) => (
-                <li key={s.id} className="rounded-lg border border-border/60 p-3">
-                  <p className="font-medium">{s.title}</p>
-                  <p className="text-xs text-muted-foreground">{s.when}</p>
+                <li
+                  key={s.id}
+                  className="flex items-start justify-between gap-3 rounded-lg border border-border/60 p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{s.title}</p>
+                    <p className="text-xs text-muted-foreground">{formatWhen(s.when)}</p>
+                    {s.description && (
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground/80">
+                        {s.description}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Remove shoot"
+                    onClick={() => removeShoot(s.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </li>
               ))}
             </ul>
