@@ -1,6 +1,25 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
+// Ensure these are explicitly read from environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Fail gracefully if variables are missing instead of crashing the app
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error("Missing Supabase environment variables! Check your Project Settings.");
+}
+
+// Fallback to empty strings only if necessary to prevent hard crashes, 
+// but Supabase will throw a warning in the console if they are invalid
+export const supabase = createClient(supabaseUrl || "", supabaseAnonKey || "");
+
+const SERVER_KEY = "recassistant.current_server";
+
+// ... keep the rest of your file exactly as it is ...
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 
