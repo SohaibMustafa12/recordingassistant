@@ -23,10 +23,10 @@ export interface DiscordServer {
   role: "owner" | "admin" | "crew";
 }
 
-export function isAuthed(): boolean {
-  if (typeof window === "undefined") return false;
-  const sessionString = window.localStorage.getItem(`sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`);
-  return !!sessionString;
+// SECURED: No longer relies on localStorage for auth checks
+export async function isAuthed(): Promise<boolean> {
+  const { data: { session } } = await supabase.auth.getSession();
+  return !!session;
 }
 
 export function getCurrentServer(): DiscordServer | null {
@@ -42,7 +42,6 @@ export function setCurrentServer(server: DiscordServer) {
 }
 
 export async function logout() {
-  if (typeof window === "undefined") return;
   await supabase.auth.signOut();
   window.localStorage.removeItem(SERVER_KEY);
   window.dispatchEvent(new Event("recassistant:auth"));
@@ -58,11 +57,9 @@ export async function loginWithDiscord() {
   });
 }
 
-// Dedicated function for the "Invite Bot" button with your specific Client ID
 export function inviteBot() {
   const clientId = "1528299078914543758";
-  const permissions = "8"; // Administrator
-  // &prompt=consent forces Discord to show the permission/server selection screen
+  const permissions = "8";
   const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&permissions=${permissions}&scope=bot%20applications.commands&prompt=consent`;
   
   window.open(inviteUrl, "_blank");
@@ -74,6 +71,7 @@ export function useAuth() {
   const [currentServer, setServerState] = useState<DiscordServer | null>(null);
 
   useEffect(() => {
+    // SECURED: Uses Supabase session directly
     supabase.auth.getSession().then(({ data: { session } }) => {
       setAuthedState(!!session);
       setServerState(getCurrentServer());
