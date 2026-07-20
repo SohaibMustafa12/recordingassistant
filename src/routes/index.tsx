@@ -1,4 +1,5 @@
-import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useAuth, setAuthed, DISCORD_OAUTH_URL } from "@/lib/auth";
 import { ShieldLogo } from "@/components/ShieldLogo";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,26 @@ function DiscordIcon({ className }: { className?: string }) {
 
 function LoginPage() {
   const { authed, ready } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    if (!code) return;
+
+    setAuthed(true);
+    void navigate({ to: "/overview", replace: true });
+  }, [navigate]);
+
   if (ready && authed) return <Navigate to="/overview" replace />;
+
+  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("code")) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="text-sm text-muted-foreground">Completing Discord login…</div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
