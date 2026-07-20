@@ -19,7 +19,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { setAuthed, useAuth } from "@/lib/auth";
+// Updated import: Removed setAuthed, added logout
+import { useAuth, logout } from "@/lib/auth";
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
@@ -48,6 +49,12 @@ export function AppSidebar() {
 
   // Filter items: Crew only sees non-admin routes; Owners/Admins see everything
   const visibleItems = allItems.filter(item => !item.requiresAdmin || isAdmin);
+
+  // Secure logout handler
+  const handleLogout = async () => {
+    await logout();
+    navigate({ to: "/" });
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -104,10 +111,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => {
-                setAuthed(false);
-                navigate({ to: "/" });
-              }}
+              onClick={handleLogout} // Updated to use the secure logout handler
               tooltip="Sign out"
             >
               <LogOut className="h-4 w-4" />
