@@ -42,6 +42,10 @@ function LoginPage() {
     const code = params.get("code");
     if (!code) return;
 
+    // Cleanly wipe the code from the URL bar immediately so it can never re-trigger
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    // Set authenticated state and route to dashboard
     setAuthed(true);
     void navigate({ to: "/overview", replace: true });
   }, [navigate]);
@@ -51,7 +55,7 @@ function LoginPage() {
   if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("code")) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="text-sm text-muted-foreground">Completing Discord login…</div>
+        <div className="text-sm text-muted-foreground animate-pulse">Completing Discord login…</div>
       </div>
     );
   }
