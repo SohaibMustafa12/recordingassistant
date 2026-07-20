@@ -58,7 +58,8 @@ export async function loginWithDiscord() {
   await supabase.auth.signInWithOAuth({
     provider: 'discord',
     options: {
-      scopes: 'identify guilds',
+      // Added 'bot' and 'applications.commands' scopes to trigger the server setup invitation screen
+      scopes: 'identify guilds bot applications.commands',
       redirectTo: window.location.origin, // Dynamically uses your live URL
     }
   });
