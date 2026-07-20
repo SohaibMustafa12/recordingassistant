@@ -11,16 +11,34 @@ export default function OnboardingPage() {
 
   const handleJoin = async () => {
     setLoading(true);
-    // Finds the server where the entered key matches
-    const { data, error } = await supabase
+    
+    // 1. Find the guild that matches the key
+    const { data: guild, error: guildError } = await supabase
       .from("guilds")
       .select("guild_id")
       .eq("custom_key", customKey)
       .maybeSingle();
 
-    if (data) {
-      // Logic to add user to crew_members goes here
-      navigate({ to: "/overview" });
+    if (guild) {
+      // 2. Get the current logged-in user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // 3. Add user to the crew_members table
+        const { error: insertError } = await supabase
+          .from("crew_members")
+          .insert({
+            user_id: user.id,
+            guild_id: guild.guild_id
+          });
+
+        if (!insertError) {
+          navigate({ to: "/overview" });
+        } else {
+          console.error("Insert error:", insertError);
+          alert("Error joining the server. You might already be a member.");
+        }
+      }
     } else {
       alert("Invalid key. Please check with your server owner.");
     }
