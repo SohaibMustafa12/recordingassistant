@@ -62,7 +62,8 @@ export async function loginWithDiscord() {
 export function inviteBot() {
   const clientId = "1528299078914543758";
   const permissions = "8"; // Administrator
-  const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&permissions=${permissions}&scope=bot%20applications.commands`;
+  // &prompt=consent forces Discord to show the permission/server selection screen
+  const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&permissions=${permissions}&scope=bot%20applications.commands&prompt=consent`;
   
   window.open(inviteUrl, "_blank");
 }
