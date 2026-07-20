@@ -46,18 +46,14 @@ function Scheduling() {
   const [title, setTitle] = useState("");
   const [dt, setDt] = useState("");
   const [desc, setDesc] = useState("");
-  const [shoots, setShoots] = useState<Shoot[]>([]);
-  const [hydrated, setHydrated] = useState(false);
+  
+  // FIX: Initialize state directly from localStorage so it never starts as a blank array
+  const [shoots, setShoots] = useState<Shoot[]>(() => loadShoots());
 
+  // Save changes to localStorage automatically whenever shoots array changes
   useEffect(() => {
-    setShoots(loadShoots());
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(shoots));
-  }, [shoots, hydrated]);
+  }, [shoots]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +80,13 @@ function Scheduling() {
   };
 
   const removeShoot = (id: string) => {
-    setShoots((prev) => prev.filter((s) => s.id !== id));
+    setShoots((prev) => {
+      const updated = prev.filter((s) => s.id !== id);
+      // Immediately sync with localStorage on item removal
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+    toast.success("Shoot removed");
   };
 
   return (
