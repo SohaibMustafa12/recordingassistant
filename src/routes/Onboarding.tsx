@@ -1,4 +1,9 @@
+import { useNavigate } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+
 export default function OnboardingPage() {
+  const navigate = useNavigate(); // This was missing!
+
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="max-w-md w-full space-y-6 text-center">
