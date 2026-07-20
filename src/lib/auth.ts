@@ -57,6 +57,7 @@ export async function loginWithDiscord() {
   });
 }
 
+// Function to invite the bot to the server
 export function inviteBot() {
   const clientId = "1528299078914543758";
   const permissions = "8";
