@@ -25,7 +25,6 @@ function LoginPage() {
   const handleRedirect = async () => {
     setLoading(true);
     
-    // Get the user from Supabase directly instead of the hook
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user?.id) {
@@ -42,7 +41,8 @@ function LoginPage() {
     if (memberData) {
       navigate({ to: "/overview" });
     } else {
-      navigate({ to: "/onboarding" });
+      // Pointing to the new /join route instead of /onboarding
+      navigate({ to: "/join" });
     }
   };
 
