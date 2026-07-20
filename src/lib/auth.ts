@@ -1,27 +1,9 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// Ensure these are explicitly read from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Fail gracefully if variables are missing instead of crashing the app
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error("Missing Supabase environment variables! Check your Project Settings.");
-}
-
-// Fallback to empty strings only if necessary to prevent hard crashes, 
-// but Supabase will throw a warning in the console if they are invalid
-export const supabase = createClient(supabaseUrl || "", supabaseAnonKey || "");
-
-const SERVER_KEY = "recassistant.current_server";
-
-// ... keep the rest of your file exactly as it is ...
-import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+// Permanent keys to bypass environment variable issues
+const supabaseUrl = "https://tymnibaiwcyrthqpxffq.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5bW5pYmFpd2N5cnRocXB4ZmZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MzQxNDMsImV4cCI6MjEwMDExMDE0M30.keoeiHA6OquVObbD9jqBGDFKpzjhkGcFWAIpi30Cvh4";
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -42,7 +24,6 @@ export interface DiscordServer {
   role: "owner" | "admin" | "crew";
 }
 
-// SECURED: No longer relies on localStorage for auth checks
 export async function isAuthed(): Promise<boolean> {
   const { data: { session } } = await supabase.auth.getSession();
   return !!session;
@@ -90,7 +71,6 @@ export function useAuth() {
   const [currentServer, setServerState] = useState<DiscordServer | null>(null);
 
   useEffect(() => {
-    // SECURED: Uses Supabase session directly
     supabase.auth.getSession().then(({ data: { session } }) => {
       setAuthedState(!!session);
       setServerState(getCurrentServer());
