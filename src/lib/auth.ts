@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// Initialize the official Supabase client 
-// Lovable injects these automatically into your deployment environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 
@@ -25,10 +23,8 @@ export interface DiscordServer {
   role: "owner" | "admin" | "crew";
 }
 
-// Secure check: Verifies if a cryptographically signed user session exists
 export function isAuthed(): boolean {
   if (typeof window === "undefined") return false;
-  // Instead of a faked '1', we check if Supabase has an active, valid session token
   const sessionString = window.localStorage.getItem(`sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`);
   return !!sessionString;
 }
@@ -45,7 +41,6 @@ export function setCurrentServer(server: DiscordServer) {
   window.dispatchEvent(new Event("recassistant:auth"));
 }
 
-// Handles logging out securely
 export async function logout() {
   if (typeof window === "undefined") return;
   await supabase.auth.signOut();
@@ -53,16 +48,23 @@ export async function logout() {
   window.dispatchEvent(new Event("recassistant:auth"));
 }
 
-// Redirects user straight to your Supabase-hosted Discord login gateway
 export async function loginWithDiscord() {
   await supabase.auth.signInWithOAuth({
     provider: 'discord',
     options: {
-      // Added 'bot' and 'applications.commands' scopes to trigger the server setup invitation screen
-      scopes: 'identify guilds bot applications.commands',
-      redirectTo: window.location.origin, // Dynamically uses your live URL
+      scopes: 'identify guilds',
+      redirectTo: window.location.origin,
     }
   });
+}
+
+// Dedicated function for the "Invite Bot" button with your specific Client ID
+export function inviteBot() {
+  const clientId = "1528299078914543758";
+  const permissions = "8"; // Administrator
+  const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&permissions=${permissions}&scope=bot%20applications.commands`;
+  
+  window.open(inviteUrl, "_blank");
 }
 
 export function useAuth() {
@@ -71,14 +73,12 @@ export function useAuth() {
   const [currentServer, setServerState] = useState<DiscordServer | null>(null);
 
   useEffect(() => {
-    // Check initial session state securely
     supabase.auth.getSession().then(({ data: { session } }) => {
       setAuthedState(!!session);
       setServerState(getCurrentServer());
       setReady(true);
     });
 
-    // Automatically listen to real-time authentication state changes from the backend
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setAuthedState(!!session);
       setServerState(getCurrentServer());
