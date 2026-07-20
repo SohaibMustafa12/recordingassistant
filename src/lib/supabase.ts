@@ -1,7 +1,48 @@
-import { createClient } from '@supabase/supabase-js';
+// onboarding.tsx
+import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+// IMPORTANT: Import the client you defined in supabase.ts
+import { supabase } from "@/lib/supabase"; 
 
-// Configuration injected directly to bypass environment variable issues
-const supabaseUrl = "https://tymnibaiwcyrthqpxffq.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5bW5pYmFpd2N5cnRocXB4ZmZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MzQxNDMsImV4cCI6MjEwMDExMDE0M30.keoeiHA6OquVObbD9jqBGDFKpzjhkGcFWAIpi30Cvh4";
+export default function OnboardingPage() {
+  const navigate = useNavigate();
+  const [customKey, setCustomKey] = useState("");
+  const [loading, setLoading] = useState(false);
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  const handleJoin = async () => {
+    setLoading(true);
+    
+    // This query now uses the centralized 'supabase' instance
+    const { data: guild, error: guildError } = await supabase
+      .from("guild_setting")
+      .select("guild_id")
+      .eq("join_code", customKey)
+      .maybeSingle();
+
+    if (guild) {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const { error: insertError } = await supabase
+          .from("crew_members")
+          .insert({
+            user_id: user.id,
+            guild_id: guild.guild_id
+          });
+
+        if (!insertError) {
+          navigate({ to: "/overview" });
+        } else {
+          alert("Error joining the server. You might already be a member.");
+        }
+      }
+    } else {
+      alert("Invalid key. Please check with your server owner.");
+    }
+    setLoading(false);
+  };
+
+  // ... (rest of your component code remains the same)
+}
