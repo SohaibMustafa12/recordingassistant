@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Settings as SettingsIcon,
   LogOut,
+  Server,
 } from "lucide-react";
 import {
   Sidebar,
@@ -18,31 +19,59 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { ShieldLogo } from "./ShieldLogo";
-import { setAuthed } from "@/lib/auth";
-
-const items = [
-  { title: "Overview", url: "/overview", icon: LayoutDashboard },
-  { title: "Scheduling Center", url: "/scheduling", icon: CalendarClock },
-  { title: "Attendance Logs", url: "/attendance", icon: ClipboardList },
-  { title: "Settings", url: "/settings", icon: SettingsIcon },
-] as const;
+import { setAuthed, useAuth } from "@/lib/auth";
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
+  
+  // Grab the authenticated user's active Discord server and permission states
+  const { currentServer, isAdmin, isOwner } = useAuth();
+
+  // Helper to extract server name initials if no custom icon logo exists
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  };
+
+  // Setup navigation options labeled with strict role restrictions
+  const allItems = [
+    { title: "Overview", url: "/overview", icon: LayoutDashboard, requiresAdmin: false },
+    { title: "Scheduling Center", url: "/scheduling", icon: CalendarClock, requiresAdmin: false },
+    { title: "Attendance Logs", url: "/attendance", icon: ClipboardList, requiresAdmin: true },
+    { title: "Settings", url: "/settings", icon: SettingsIcon, requiresAdmin: true },
+  ];
+
+  // Filter items: Crew only sees non-admin routes; Owners/Admins see everything
+  const visibleItems = allItems.filter(item => !item.requiresAdmin || isAdmin);
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-3 px-2 py-3">
-          <ShieldLogo className="h-9 w-9 shrink-0" />
-          <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="font-display text-base font-bold tracking-tight">
-              RecAssistant
+          {/* Dynamic Profile Branding Image or Placeholder initials */}
+          {currentServer?.icon ? (
+            <img 
+              src={`https://cdn.discordapp.com/icons/${currentServer.id}/${currentServer.icon}.png`}
+              alt={currentServer.name}
+              className="h-9 w-9 rounded-md object-cover shrink-0 border border-sidebar-border"
+            />
+          ) : (
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary font-bold text-sm">
+              {currentServer ? getInitials(currentServer.name) : <Server className="h-4 w-4" />}
+            </div>
+          )}
+          
+          <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden min-w-0">
+            <span className="font-display text-sm font-bold tracking-tight truncate">
+              {currentServer?.name || "RecAssistant"}
             </span>
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-              Crew Command
+            <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-semibold mt-0.5">
+              {isOwner ? "👑 Owner View" : isAdmin ? "🛡️ Admin View" : "👥 Crew Hub"}
             </span>
           </div>
         </div>
@@ -53,7 +82,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => {
+              {visibleItems.map((item) => {
                 const active = pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.url}>
