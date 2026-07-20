@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Users, Video, TrendingUp, Activity } from "lucide-react";
+import { Users, Video, TrendingUp, Activity, Bot, ArrowUpRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/_dash/overview")({
   head: () => ({ meta: [{ title: "Overview — RecAssistant" }] }),
@@ -13,17 +15,49 @@ const stats = [
   { label: "Attendance Rate", value: "—", icon: TrendingUp, hint: "Average across all shoots" },
 ] as const;
 
+// Replace this with your actual Discord Bot invite link setup from your Discord Developer Portal
+const BOT_INVITE_URL = "https://discord.com/oauth2/authorize?client_id=1528299078914543758&permissions=8&scope=bot+applications.commands";
+
 function Overview() {
+  const { isAdmin, currentServer } = useAuth();
   const activity: { id: string; text: string; time: string }[] = [];
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
-      <div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Overview</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Command center for your ERLC recording crew.
-        </p>
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Overview</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Command center for your ERLC recording crew.
+          </p>
+        </div>
       </div>
+
+      {/* ADMIN & OWNER BANNER: Invite Bot Action Link */}
+      {isAdmin && (
+        <Card className="relative overflow-hidden border border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background p-6">
+          <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 font-display text-lg font-semibold text-foreground">
+                <Bot className="h-5 w-5 text-primary" />
+                Connect RecAssistant Bot
+              </div>
+              <p className="max-w-2xl text-sm text-muted-foreground">
+                Authorize our automation system inside <span className="font-medium text-foreground">{currentServer?.name || "your Discord server"}</span> to auto-announce scheduled recording events, capture dynamic server attendance, and run server tools directly.
+              </p>
+            </div>
+            <Button 
+              asChild 
+              className="gap-2 shrink-0 bg-[#5865F2] hover:bg-[#4752C4] text-white font-medium"
+            >
+              <a href={BOT_INVITE_URL} target="_blank" rel="noopener noreferrer">
+                Invite Bot
+                <ArrowUpRight className="h-4 w-4" />
+              </a>
+            </Button>
+          </div>
+        </Card>
+      )}
 
       <div className="grid gap-4 md:grid-cols-3">
         {stats.map((s) => (
