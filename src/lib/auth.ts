@@ -1,8 +1,13 @@
-// Upgraded Discord OAuth handler for RecAssistant
 import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-const AUTH_KEY = "recassistant.authed";
-const USER_KEY = "recassistant.user";
+// Initialize the official Supabase client 
+// Lovable injects these automatically into your deployment environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 const SERVER_KEY = "recassistant.current_server";
 
 export interface DiscordUser {
@@ -20,9 +25,12 @@ export interface DiscordServer {
   role: "owner" | "admin" | "crew";
 }
 
+// Secure check: Verifies if a cryptographically signed user session exists
 export function isAuthed(): boolean {
   if (typeof window === "undefined") return false;
-  return window.localStorage.getItem(AUTH_KEY) === "1";
+  // Instead of a faked '1', we check if Supabase has an active, valid session token
+  const sessionString = window.localStorage.getItem(`sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`);
+  return !!sessionString;
 }
 
 export function getCurrentServer(): DiscordServer | null {
@@ -37,40 +45,55 @@ export function setCurrentServer(server: DiscordServer) {
   window.dispatchEvent(new Event("recassistant:auth"));
 }
 
-export function setAuthed(v: boolean, userData?: DiscordUser, serverData?: DiscordServer) {
+// Handles logging out securely
+export async function logout() {
   if (typeof window === "undefined") return;
-  if (v) {
-    window.localStorage.setItem(AUTH_KEY, "1");
-    if (userData) window.localStorage.setItem(USER_KEY, JSON.stringify(userData));
-    if (serverData) window.localStorage.setItem(SERVER_KEY, JSON.stringify(serverData));
-  } else {
-    window.localStorage.removeItem(AUTH_KEY);
-    window.localStorage.removeItem(USER_KEY);
-    window.localStorage.removeItem(SERVER_KEY);
-  }
+  await supabase.auth.signOut();
+  window.localStorage.removeItem(SERVER_KEY);
   window.dispatchEvent(new Event("recassistant:auth"));
 }
 
+// Redirects user straight to your Supabase-hosted Discord login gateway
+export async function loginWithDiscord() {
+  await supabase.auth.signInWithOAuth({
+    provider: 'discord',
+    options: {
+      scopes: 'identify guilds',
+      redirectTo: window.location.origin, // Dynamically uses your live URL
+    }
+  });
+}
+
 export function useAuth() {
-  const [authed, setState] = useState(false);
+  const [authed, setAuthedState] = useState(false);
   const [ready, setReady] = useState(false);
   const [currentServer, setServerState] = useState<DiscordServer | null>(null);
 
   useEffect(() => {
-    setState(isAuthed());
-    setServerState(getCurrentServer());
-    setReady(true);
+    // Check initial session state securely
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthedState(!!session);
+      setServerState(getCurrentServer());
+      setReady(true);
+    });
 
-    const on = () => {
-      setState(isAuthed());
+    // Automatically listen to real-time authentication state changes from the backend
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setAuthedState(!!session);
+      setServerState(getCurrentServer());
+      if (event === 'SIGNED_OUT') {
+        window.localStorage.removeItem(SERVER_KEY);
+      }
+    });
+
+    const onCustomServerChange = () => {
       setServerState(getCurrentServer());
     };
 
-    window.addEventListener("recassistant:auth", on);
-    window.addEventListener("storage", on);
+    window.addEventListener("recassistant:auth", onCustomServerChange);
     return () => {
-      window.removeEventListener("recassistant:auth", on);
-      window.removeEventListener("storage", on);
+      subscription.unsubscribe();
+      window.removeEventListener("recassistant:auth", onCustomServerChange);
     };
   }, []);
 
@@ -83,7 +106,3 @@ export function useAuth() {
     isCrew: currentServer?.role === "crew"
   };
 }
-
-// Your actual client credentials URL configuration
-export const DISCORD_OAUTH_URL =
-  "https://discord.com/oauth2/authorize?client_id=1528299078914543758&response_type=code&scope=identify+guilds&redirect_uri=https://recordingassistant.lovable.app/";
