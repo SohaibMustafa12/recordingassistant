@@ -265,10 +265,12 @@ function LandingPage() {
       const discordAvatar = user.user_metadata?.avatar_url || null;
 
       const result = await joinServerByCode({
-        userId: user.id,
-        username: discordName,
-        avatar: discordAvatar,
-        code: joinCode.trim(),
+        data: {
+          userId: user.id,
+          username: discordName,
+          avatar: discordAvatar,
+          code: joinCode.trim(),
+        },
       });
 
       if (result.alreadyMember) {
