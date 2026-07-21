@@ -11,7 +11,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 // Server function to securely validate join code and add user as a member bypassing RLS issues with join codes
 const joinServerByCode = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     (data: { userId: string; username: string; avatar: string | null; code: string }) => data,
   )
   .handler(async ({ data }) => {
@@ -98,12 +98,12 @@ const joinServerByCode = createServerFn({ method: "POST" })
       .eq("code", code.trim());
 
     if (updateError) {
-      // Don't fail the whole request just because use count failed to update, but log it
       console.error("Error updating use count for code:", code.trim(), updateError);
     }
 
     return { success: true, guildId: codeData.guild_id, alreadyMember: false };
   });
+
 import {
   Bot,
   Server,
@@ -111,7 +111,6 @@ import {
   Key,
   LogOut,
   ChevronRight,
-  LayoutDashboard,
   Plus,
   AlertTriangle,
 } from "lucide-react";
@@ -173,7 +172,7 @@ function LandingPage() {
     // Listen for auth state changes (e.g. login/logout)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (active) {
         setUser(session?.user ?? null);
         if (session?.user) {
@@ -196,18 +195,16 @@ function LandingPage() {
     try {
       const { data, error } = await supabase
         .from("members")
-        .select(
-          `
+        .select(`
           guild_id,
           role,
           joined_at,
-          guilds (
+          guilds!inner (
             id,
             name,
             icon
           )
-        `,
-        )
+        `)
         .eq("user_id", userId);
 
       if (error) throw error;
@@ -282,8 +279,8 @@ function LandingPage() {
       await fetchJoinedServers(user.id);
       setJoinCode("");
 
-      // Navigate to overview of the newly joined server
-      navigate({ to: `/dashboard/${result.guildId}/overview` });
+      // Navigate to overview of the newly joined server using string interpolation
+      navigate({ to: `/dashboard/$guildId/overview`, params: { guildId: result.guildId } });
     } catch (err) {
       console.error("Join error:", err);
       const errMsg =
@@ -306,11 +303,13 @@ function LandingPage() {
       return;
     }
 
+    const trimmedGuildId = newGuildId.trim();
+
     setRegistering(true);
     try {
       // 1. Insert guild settings record
       const { error: guildError } = await supabase.from("guilds").insert({
-        id: newGuildId.trim(),
+        id: trimmedGuildId,
         name: newGuildName.trim(),
         owner_id: user.id,
         prefix: "!",
@@ -331,7 +330,7 @@ function LandingPage() {
 
       const { error: memberError } = await supabase.from("members").insert({
         user_id: user.id,
-        guild_id: newGuildId.trim(),
+        guild_id: trimmedGuildId,
         username: discordName,
         avatar: discordAvatar,
         role: "owner",
@@ -345,7 +344,7 @@ function LandingPage() {
       setShowRegister(false);
       await fetchJoinedServers(user.id);
 
-      navigate({ to: `/dashboard/${newGuildId.trim()}/overview` });
+      navigate({ to: `/dashboard/$guildId/overview`, params: { guildId: trimmedGuildId } });
     } catch (err) {
       console.error(err);
       const errMsg = err instanceof Error ? err.message : "Failed to register server.";
@@ -553,7 +552,12 @@ function LandingPage() {
                         return (
                           <div
                             key={srv.guild_id}
-                            onClick={() => navigate({ to: `/dashboard/${guild.id}/overview` })}
+                            onClick={() =>
+                              navigate({
+                                to: `/dashboard/$guildId/overview`,
+                                params: { guildId: guild.id },
+                              })
+                            }
                             className="flex items-center justify-between p-3 rounded-lg border border-border/40 bg-secondary/20 hover:bg-secondary/40 transition-all cursor-pointer group"
                           >
                             <div className="flex items-center gap-3 min-w-0">
