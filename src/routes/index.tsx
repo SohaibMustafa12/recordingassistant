@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 
 // THIS IS THE MISSING PIECE FOR ERROR #419
-export const Route = createFileRoute("/join")({
+export const Route = createFileRoute("/")({
   component: JoinPage,
 });
 
