@@ -7,7 +7,7 @@ import { Session } from "@supabase/supabase-js";
 
 // Server Function to safely sync memberships bypassing RLS using supabaseAdmin
 const syncUserMemberships = createServerFn({ method: "POST" })
-  .validator(
+  .inputValidator(
     (data: {
       userId: string;
       username: string;
