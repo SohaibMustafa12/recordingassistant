@@ -14,13 +14,143 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      guilds: {
+        Row: {
+          announcement_channel_id: string | null
+          attendance_channel_id: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          owner_id: string
+          prefix: string
+          recording_channel_id: string | null
+          settings: Json
+          updated_at: string
+        }
+        Insert: {
+          announcement_channel_id?: string | null
+          attendance_channel_id?: string | null
+          created_at?: string
+          icon?: string | null
+          id: string
+          is_active?: boolean
+          name: string
+          owner_id: string
+          prefix?: string
+          recording_channel_id?: string | null
+          settings?: Json
+          updated_at?: string
+        }
+        Update: {
+          announcement_channel_id?: string | null
+          attendance_channel_id?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          owner_id?: string
+          prefix?: string
+          recording_channel_id?: string | null
+          settings?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      join_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          guild_id: string
+          max_uses: number | null
+          role: string
+          use_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          guild_id: string
+          max_uses?: number | null
+          role?: string
+          use_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          guild_id?: string
+          max_uses?: number | null
+          role?: string
+          use_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "join_codes_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      members: {
+        Row: {
+          avatar: string | null
+          guild_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          avatar?: string | null
+          guild_id: string
+          id?: string
+          joined_at?: string
+          role: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          avatar?: string | null
+          guild_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      guild_role: {
+        Args: { _guild_id: string; _user_id: string }
+        Returns: string
+      }
+      is_guild_member: {
+        Args: { _guild_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
