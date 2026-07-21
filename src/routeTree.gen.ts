@@ -11,12 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as DashRouteImport } from './routes/_dash'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashSettingsRouteImport } from './routes/_dash/settings'
-import { Route as DashSchedulingRouteImport } from './routes/_dash/scheduling'
-import { Route as DashOverviewRouteImport } from './routes/_dash/overview'
-import { Route as DashAttendanceRouteImport } from './routes/_dash/attendance'
+import { Route as DashboardGuildIdRouteImport } from './routes/dashboard/$guildId'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as DashboardGuildIdSettingsRouteImport } from './routes/dashboard/$guildId/settings'
+import { Route as DashboardGuildIdSchedulingRouteImport } from './routes/dashboard/$guildId/scheduling'
+import { Route as DashboardGuildIdOverviewRouteImport } from './routes/dashboard/$guildId/overview'
+import { Route as DashboardGuildIdAttendanceRouteImport } from './routes/dashboard/$guildId/attendance'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -28,64 +29,79 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashRoute = DashRouteImport.update({
-  id: '/_dash',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashSettingsRoute = DashSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => DashRoute,
+const DashboardGuildIdRoute = DashboardGuildIdRouteImport.update({
+  id: '/dashboard/$guildId',
+  path: '/dashboard/$guildId',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const DashSchedulingRoute = DashSchedulingRouteImport.update({
-  id: '/scheduling',
-  path: '/scheduling',
-  getParentRoute: () => DashRoute,
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const DashOverviewRoute = DashOverviewRouteImport.update({
-  id: '/overview',
-  path: '/overview',
-  getParentRoute: () => DashRoute,
-} as any)
-const DashAttendanceRoute = DashAttendanceRouteImport.update({
-  id: '/attendance',
-  path: '/attendance',
-  getParentRoute: () => DashRoute,
-} as any)
+const DashboardGuildIdSettingsRoute =
+  DashboardGuildIdSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => DashboardGuildIdRoute,
+  } as any)
+const DashboardGuildIdSchedulingRoute =
+  DashboardGuildIdSchedulingRouteImport.update({
+    id: '/scheduling',
+    path: '/scheduling',
+    getParentRoute: () => DashboardGuildIdRoute,
+  } as any)
+const DashboardGuildIdOverviewRoute =
+  DashboardGuildIdOverviewRouteImport.update({
+    id: '/overview',
+    path: '/overview',
+    getParentRoute: () => DashboardGuildIdRoute,
+  } as any)
+const DashboardGuildIdAttendanceRoute =
+  DashboardGuildIdAttendanceRouteImport.update({
+    id: '/attendance',
+    path: '/attendance',
+    getParentRoute: () => DashboardGuildIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/attendance': typeof DashAttendanceRoute
-  '/overview': typeof DashOverviewRoute
-  '/scheduling': typeof DashSchedulingRoute
-  '/settings': typeof DashSettingsRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/dashboard/$guildId': typeof DashboardGuildIdRouteWithChildren
+  '/dashboard/$guildId/attendance': typeof DashboardGuildIdAttendanceRoute
+  '/dashboard/$guildId/overview': typeof DashboardGuildIdOverviewRoute
+  '/dashboard/$guildId/scheduling': typeof DashboardGuildIdSchedulingRoute
+  '/dashboard/$guildId/settings': typeof DashboardGuildIdSettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/attendance': typeof DashAttendanceRoute
-  '/overview': typeof DashOverviewRoute
-  '/scheduling': typeof DashSchedulingRoute
-  '/settings': typeof DashSettingsRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/dashboard/$guildId': typeof DashboardGuildIdRouteWithChildren
+  '/dashboard/$guildId/attendance': typeof DashboardGuildIdAttendanceRoute
+  '/dashboard/$guildId/overview': typeof DashboardGuildIdOverviewRoute
+  '/dashboard/$guildId/scheduling': typeof DashboardGuildIdSchedulingRoute
+  '/dashboard/$guildId/settings': typeof DashboardGuildIdSettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_dash': typeof DashRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/_dash/attendance': typeof DashAttendanceRoute
-  '/_dash/overview': typeof DashOverviewRoute
-  '/_dash/scheduling': typeof DashSchedulingRoute
-  '/_dash/settings': typeof DashSettingsRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/dashboard/$guildId': typeof DashboardGuildIdRouteWithChildren
+  '/dashboard/$guildId/attendance': typeof DashboardGuildIdAttendanceRoute
+  '/dashboard/$guildId/overview': typeof DashboardGuildIdOverviewRoute
+  '/dashboard/$guildId/scheduling': typeof DashboardGuildIdSchedulingRoute
+  '/dashboard/$guildId/settings': typeof DashboardGuildIdSettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -93,36 +109,42 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/terms'
-    | '/attendance'
-    | '/overview'
-    | '/scheduling'
-    | '/settings'
+    | '/auth/callback'
+    | '/dashboard/$guildId'
+    | '/dashboard/$guildId/attendance'
+    | '/dashboard/$guildId/overview'
+    | '/dashboard/$guildId/scheduling'
+    | '/dashboard/$guildId/settings'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/privacy'
     | '/terms'
-    | '/attendance'
-    | '/overview'
-    | '/scheduling'
-    | '/settings'
+    | '/auth/callback'
+    | '/dashboard/$guildId'
+    | '/dashboard/$guildId/attendance'
+    | '/dashboard/$guildId/overview'
+    | '/dashboard/$guildId/scheduling'
+    | '/dashboard/$guildId/settings'
   id:
     | '__root__'
     | '/'
-    | '/_dash'
     | '/privacy'
     | '/terms'
-    | '/_dash/attendance'
-    | '/_dash/overview'
-    | '/_dash/scheduling'
-    | '/_dash/settings'
+    | '/auth/callback'
+    | '/dashboard/$guildId'
+    | '/dashboard/$guildId/attendance'
+    | '/dashboard/$guildId/overview'
+    | '/dashboard/$guildId/scheduling'
+    | '/dashboard/$guildId/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashRoute: typeof DashRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
+  DashboardGuildIdRoute: typeof DashboardGuildIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -141,13 +163,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_dash': {
-      id: '/_dash'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof DashRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -155,69 +170,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_dash/settings': {
-      id: '/_dash/settings'
+    '/dashboard/$guildId': {
+      id: '/dashboard/$guildId'
+      path: '/dashboard/$guildId'
+      fullPath: '/dashboard/$guildId'
+      preLoaderRoute: typeof DashboardGuildIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/$guildId/settings': {
+      id: '/dashboard/$guildId/settings'
       path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof DashSettingsRouteImport
-      parentRoute: typeof DashRoute
+      fullPath: '/dashboard/$guildId/settings'
+      preLoaderRoute: typeof DashboardGuildIdSettingsRouteImport
+      parentRoute: typeof DashboardGuildIdRoute
     }
-    '/_dash/scheduling': {
-      id: '/_dash/scheduling'
+    '/dashboard/$guildId/scheduling': {
+      id: '/dashboard/$guildId/scheduling'
       path: '/scheduling'
-      fullPath: '/scheduling'
-      preLoaderRoute: typeof DashSchedulingRouteImport
-      parentRoute: typeof DashRoute
+      fullPath: '/dashboard/$guildId/scheduling'
+      preLoaderRoute: typeof DashboardGuildIdSchedulingRouteImport
+      parentRoute: typeof DashboardGuildIdRoute
     }
-    '/_dash/overview': {
-      id: '/_dash/overview'
+    '/dashboard/$guildId/overview': {
+      id: '/dashboard/$guildId/overview'
       path: '/overview'
-      fullPath: '/overview'
-      preLoaderRoute: typeof DashOverviewRouteImport
-      parentRoute: typeof DashRoute
+      fullPath: '/dashboard/$guildId/overview'
+      preLoaderRoute: typeof DashboardGuildIdOverviewRouteImport
+      parentRoute: typeof DashboardGuildIdRoute
     }
-    '/_dash/attendance': {
-      id: '/_dash/attendance'
+    '/dashboard/$guildId/attendance': {
+      id: '/dashboard/$guildId/attendance'
       path: '/attendance'
-      fullPath: '/attendance'
-      preLoaderRoute: typeof DashAttendanceRouteImport
-      parentRoute: typeof DashRoute
+      fullPath: '/dashboard/$guildId/attendance'
+      preLoaderRoute: typeof DashboardGuildIdAttendanceRouteImport
+      parentRoute: typeof DashboardGuildIdRoute
     }
   }
 }
 
-interface DashRouteChildren {
-  DashAttendanceRoute: typeof DashAttendanceRoute
-  DashOverviewRoute: typeof DashOverviewRoute
-  DashSchedulingRoute: typeof DashSchedulingRoute
-  DashSettingsRoute: typeof DashSettingsRoute
+interface DashboardGuildIdRouteChildren {
+  DashboardGuildIdAttendanceRoute: typeof DashboardGuildIdAttendanceRoute
+  DashboardGuildIdOverviewRoute: typeof DashboardGuildIdOverviewRoute
+  DashboardGuildIdSchedulingRoute: typeof DashboardGuildIdSchedulingRoute
+  DashboardGuildIdSettingsRoute: typeof DashboardGuildIdSettingsRoute
 }
 
-const DashRouteChildren: DashRouteChildren = {
-  DashAttendanceRoute: DashAttendanceRoute,
-  DashOverviewRoute: DashOverviewRoute,
-  DashSchedulingRoute: DashSchedulingRoute,
-  DashSettingsRoute: DashSettingsRoute,
+const DashboardGuildIdRouteChildren: DashboardGuildIdRouteChildren = {
+  DashboardGuildIdAttendanceRoute: DashboardGuildIdAttendanceRoute,
+  DashboardGuildIdOverviewRoute: DashboardGuildIdOverviewRoute,
+  DashboardGuildIdSchedulingRoute: DashboardGuildIdSchedulingRoute,
+  DashboardGuildIdSettingsRoute: DashboardGuildIdSettingsRoute,
 }
 
-const DashRouteWithChildren = DashRoute._addFileChildren(DashRouteChildren)
+const DashboardGuildIdRouteWithChildren =
+  DashboardGuildIdRoute._addFileChildren(DashboardGuildIdRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashRoute: DashRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
+  DashboardGuildIdRoute: DashboardGuildIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
