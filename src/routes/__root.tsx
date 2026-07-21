@@ -93,9 +93,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "RecAssistant — Login" },
-      { name: "twitter:description", content: "The Ultimate Recording Crew Assistant for ERLC YouTubers. Sign in with Discord to manage your crew." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/70b725e9-74dc-4990-a3a3-84cfb0f111e9" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/70b725e9-74dc-4990-a3a3-84cfb0f111e9" },
+      {
+        name: "twitter:description",
+        content:
+          "The Ultimate Recording Crew Assistant for ERLC YouTubers. Sign in with Discord to manage your crew.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/70b725e9-74dc-4990-a3a3-84cfb0f111e9",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/70b725e9-74dc-4990-a3a3-84cfb0f111e9",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

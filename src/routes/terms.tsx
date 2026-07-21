@@ -22,7 +22,7 @@ const sections = [
   },
   {
     h: "3. Service Availability",
-    p: "RecAssistant is provided \"as is\". We aim for high uptime but do not guarantee uninterrupted service.",
+    p: 'RecAssistant is provided "as is". We aim for high uptime but do not guarantee uninterrupted service.',
   },
   {
     h: "4. Content Ownership",

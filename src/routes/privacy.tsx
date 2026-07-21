@@ -19,7 +19,7 @@ function Privacy() {
 const sections = [
   {
     h: "1. Overview",
-    p: "RecAssistant (\"we\", \"our\", \"the bot\") is a Discord bot built for ERLC recording crews. This Privacy Policy explains what information we collect, how it's used, and the choices you have.",
+    p: 'RecAssistant ("we", "our", "the bot") is a Discord bot built for ERLC recording crews. This Privacy Policy explains what information we collect, how it\'s used, and the choices you have.',
   },
   {
     h: "2. Information We Collect",
@@ -77,9 +77,7 @@ function LegalPage({
         <div className="mt-10 space-y-8 rounded-2xl border border-border/60 bg-panel p-8 leading-relaxed">
           {sections.map((s) => (
             <section key={s.h} className="space-y-2">
-              <h2 className="font-display text-lg font-semibold text-foreground">
-                {s.h}
-              </h2>
+              <h2 className="font-display text-lg font-semibold text-foreground">{s.h}</h2>
               <p className="text-sm text-muted-foreground">{s.p}</p>
             </section>
           ))}

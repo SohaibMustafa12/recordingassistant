@@ -8,12 +8,12 @@ export default function Settings() {
   const saveSettings = async () => {
     // This talks to the 'guild_settings' table you created!
     const { error } = await supabase
-      .from('guild_settings')
-      .update({ 
-        announcement_channel_id: channelId, 
-        attendance_role_id: roleId 
+      .from("guild_settings")
+      .update({
+        announcement_channel_id: channelId,
+        attendance_role_id: roleId,
       })
-      .eq('guild_id', 'YOUR_SERVER_ID'); // Replace this with the actual ID
+      .eq("guild_id", "YOUR_SERVER_ID"); // Replace this with the actual ID
 
     if (error) alert("Error saving: " + error.message);
     else alert("Settings saved!");

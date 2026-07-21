@@ -3,7 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 
 // Permanent keys to bypass environment variable issues
 const supabaseUrl = "https://tymnibaiwcyrthqpxffq.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5bW5pYmFpd2N5cnRocXB4ZmZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MzQxNDMsImV4cCI6MjEwMDExMDE0M30.keoeiHA6OquVObbD9jqBGDFKpzjhkGcFWAIpi30Cvh4";
+const supabaseAnonKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5bW5pYmFpd2N5cnRocXB4ZmZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MzQxNDMsImV4cCI6MjEwMDExMDE0M30.keoeiHA6OquVObbD9jqBGDFKpzjhkGcFWAIpi30Cvh4";
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -25,7 +26,9 @@ export interface DiscordServer {
 }
 
 export async function isAuthed(): Promise<boolean> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   return !!session;
 }
 
@@ -49,11 +52,11 @@ export async function logout() {
 
 export async function loginWithDiscord() {
   await supabase.auth.signInWithOAuth({
-    provider: 'discord',
+    provider: "discord",
     options: {
-      scopes: 'identify guilds',
-      redirectTo: window.location.origin,
-    }
+      scopes: "identify guilds",
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
   });
 }
 
@@ -62,7 +65,7 @@ export function inviteBot() {
   const clientId = "1528299078914543758";
   const permissions = "8";
   const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&permissions=${permissions}&scope=bot%20applications.commands&prompt=consent`;
-  
+
   window.open(inviteUrl, "_blank");
 }
 
@@ -78,10 +81,12 @@ export function useAuth() {
       setReady(true);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setAuthedState(!!session);
       setServerState(getCurrentServer());
-      if (event === 'SIGNED_OUT') {
+      if (event === "SIGNED_OUT") {
         window.localStorage.removeItem(SERVER_KEY);
       }
     });
@@ -97,12 +102,12 @@ export function useAuth() {
     };
   }, []);
 
-  return { 
-    authed, 
-    ready, 
+  return {
+    authed,
+    ready,
     currentServer,
     isOwner: currentServer?.role === "owner",
     isAdmin: currentServer?.role === "admin" || currentServer?.role === "owner",
-    isCrew: currentServer?.role === "crew"
+    isCrew: currentServer?.role === "crew",
   };
 }

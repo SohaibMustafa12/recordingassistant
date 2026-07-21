@@ -1,0 +1,6 @@
+{
+  "name": "Recording Assistant",
+  "description": "Manage schedule, attendance, and member roles for your Discord ERLC recording crew.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
