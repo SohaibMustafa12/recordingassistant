@@ -7,23 +7,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useDashboard } from "../$guildId";
 
-export const Route = createFileRoute("/_dash/scheduling")({
+export const Route = createFileRoute("/dashboard/$guildId/scheduling")({
   head: () => ({ meta: [{ title: "Scheduling Center — RecAssistant" }] }),
   component: Scheduling,
 });
 
-type Shoot = { id: string; title: string; when: string; description: string };
+type Shoot = { id: string; title: string; when: string; description: string; guildId: string };
 
 const STORAGE_KEY = "recassistant:shoots";
 
-function loadShoots(): Shoot[] {
+function loadShoots(guildId: string): Shoot[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // Only return shoots for this active guild/tenant!
+    return parsed.filter((s: Shoot) => s.guildId === guildId);
   } catch {
     return [];
   }
@@ -43,17 +46,17 @@ function formatWhen(iso: string) {
 }
 
 function Scheduling() {
+  const { guildId } = useDashboard();
   const [title, setTitle] = useState("");
   const [dt, setDt] = useState("");
   const [desc, setDesc] = useState("");
-  
-  // FIX: Initialize state directly from localStorage so it never starts as a blank array
-  const [shoots, setShoots] = useState<Shoot[]>(() => loadShoots());
 
-  // Save changes to localStorage automatically whenever shoots array changes
+  const [shoots, setShoots] = useState<Shoot[]>(() => loadShoots(guildId));
+
+  // Load shoots when guild changes
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(shoots));
-  }, [shoots]);
+    setShoots(loadShoots(guildId));
+  }, [guildId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,10 +72,22 @@ function Scheduling() {
       title: title.trim(),
       when: dt,
       description: desc.trim(),
+      guildId,
     };
-    setShoots((prev) =>
-      [...prev, shoot].sort((a, b) => a.when.localeCompare(b.when)),
-    );
+
+    const allRaw = window.localStorage.getItem(STORAGE_KEY);
+    let allShoots: Shoot[] = [];
+    try {
+      allShoots = allRaw ? JSON.parse(allRaw) : [];
+      if (!Array.isArray(allShoots)) allShoots = [];
+    } catch {
+      allShoots = [];
+    }
+
+    const updatedAll = [...allShoots, shoot];
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAll));
+
+    setShoots((prev) => [...prev, shoot].sort((a, b) => a.when.localeCompare(b.when)));
     setTitle("");
     setDt("");
     setDesc("");
@@ -80,12 +95,19 @@ function Scheduling() {
   };
 
   const removeShoot = (id: string) => {
-    setShoots((prev) => {
-      const updated = prev.filter((s) => s.id !== id);
-      // Immediately sync with localStorage on item removal
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      return updated;
-    });
+    const allRaw = window.localStorage.getItem(STORAGE_KEY);
+    let allShoots: Shoot[] = [];
+    try {
+      allShoots = allRaw ? JSON.parse(allRaw) : [];
+      if (!Array.isArray(allShoots)) allShoots = [];
+    } catch {
+      allShoots = [];
+    }
+
+    const updatedAll = allShoots.filter((s) => s.id !== id);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAll));
+
+    setShoots((prev) => prev.filter((s) => s.id !== id));
     toast.success("Shoot removed");
   };
 
@@ -94,9 +116,7 @@ function Scheduling() {
       <div className="lg:col-span-3">
         <div className="mb-6">
           <h1 className="font-display text-3xl font-bold tracking-tight">Scheduling Center</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Plan your next ERLC roleplay shoot.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Plan your next ERLC roleplay shoot.</p>
         </div>
 
         <Card className="border-border/60 bg-panel p-6">

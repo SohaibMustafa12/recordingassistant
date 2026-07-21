@@ -10,11 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useAuth } from "@/lib/auth";
-import { useEffect } from "react";
+import { useDashboard } from "../$guildId";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_dash/attendance")({
+export const Route = createFileRoute("/dashboard/$guildId/attendance")({
   head: () => ({ meta: [{ title: "Attendance Logs — RecAssistant" }] }),
   component: Attendance,
 });
@@ -51,16 +50,15 @@ const MOCK_LOGS = [
 ];
 
 function Attendance() {
-  const { isAdmin, ready } = useAuth();
+  const { isAdmin, guildId } = useDashboard();
   const navigate = useNavigate();
 
-  // Export handling function stub
   const handleExport = () => {
     toast.success("Attendance history compiled. CSV download started!");
   };
 
   // Crew view restriction layout template fallback
-  if (ready && !isAdmin) {
+  if (!isAdmin) {
     return (
       <div className="mx-auto flex max-w-xl flex-col items-center justify-center px-6 py-20 text-center">
         <div className="mb-5 rounded-full bg-destructive/10 p-4 text-destructive">
@@ -68,11 +66,12 @@ function Attendance() {
         </div>
         <h2 className="font-display text-2xl font-bold tracking-tight">Access Restricted</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Attendance logs can only be modified or audited by server Owners and staff Admins. Crew members can check live operational times inside the Scheduling Center instead.
+          Attendance logs can only be modified or audited by server Owners and staff Admins. Crew
+          members can check live operational times inside the Scheduling Center instead.
         </p>
-        <Button 
-          className="mt-6 gap-2" 
-          onClick={() => navigate({ to: "/scheduling" })}
+        <Button
+          className="mt-6 gap-2"
+          onClick={() => navigate({ to: `/dashboard/${guildId}/scheduling` })}
         >
           <Calendar className="h-4 w-4" />
           Go to Scheduling Center
@@ -113,9 +112,12 @@ function Attendance() {
               <TableRow key={l.id} className="hover:bg-muted/20 transition-colors">
                 <TableCell className="font-medium text-foreground">{l.title}</TableCell>
                 <TableCell className="text-muted-foreground text-sm">{l.date}</TableCell>
-                <TableCell className="text-muted-foreground font-medium text-sm">@{l.host}</TableCell>
+                <TableCell className="text-muted-foreground font-medium text-sm">
+                  @{l.host}
+                </TableCell>
                 <TableCell className="text-foreground font-semibold text-sm">
-                  {l.attended} <span className="text-muted-foreground font-normal">/ {l.total} crew</span>
+                  {l.attended}{" "}
+                  <span className="text-muted-foreground font-normal">/ {l.total} crew</span>
                   <span className="ml-2 text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full font-medium">
                     {Math.round((l.attended / l.total) * 100)}%
                   </span>
@@ -126,7 +128,12 @@ function Attendance() {
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" title="View details" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title="View details"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  >
                     <Eye className="h-4 w-4" />
                   </Button>
                 </TableCell>

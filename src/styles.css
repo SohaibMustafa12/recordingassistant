@@ -52,7 +52,11 @@
   --shadow-glow: 0 0 40px oklch(0.55 0.22 268 / 0.35);
   --shadow-elevated: 0 20px 60px -20px oklch(0 0 0 / 0.6);
 
-  --gradient-hero: radial-gradient(1200px 600px at 50% -10%, oklch(0.45 0.2 268 / 0.4), transparent 60%);
+  --gradient-hero: radial-gradient(
+    1200px 600px at 50% -10%,
+    oklch(0.45 0.2 268 / 0.4),
+    transparent 60%
+  );
   --gradient-shield: linear-gradient(135deg, oklch(0.68 0.19 258), oklch(0.55 0.22 275));
   --gradient-panel: linear-gradient(180deg, oklch(0.19 0.02 265 / 0.9), oklch(0.14 0.02 265 / 0.9));
 }
@@ -109,13 +113,17 @@
     border-color: var(--color-border);
   }
 
-  html, body {
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }

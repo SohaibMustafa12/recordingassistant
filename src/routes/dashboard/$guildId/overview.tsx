@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Users, Video, TrendingUp, Activity, Bot, ArrowUpRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth";
+import { useDashboard } from "../$guildId";
 
-export const Route = createFileRoute("/_dash/overview")({
+export const Route = createFileRoute("/dashboard/$guildId/overview")({
   head: () => ({ meta: [{ title: "Overview — RecAssistant" }] }),
   component: Overview,
 });
@@ -16,10 +16,11 @@ const stats = [
 ] as const;
 
 // Replace this with your actual Discord Bot invite link setup from your Discord Developer Portal
-const BOT_INVITE_URL = "https://discord.com/oauth2/authorize?client_id=1528299078914543758&permissions=8&scope=bot+applications.commands";
+const BOT_INVITE_URL =
+  "https://discord.com/oauth2/authorize?client_id=1528299078914543758&permissions=8&scope=bot+applications.commands";
 
 function Overview() {
-  const { isAdmin, currentServer } = useAuth();
+  const { isAdmin, guild } = useDashboard();
   const activity: { id: string; text: string; time: string }[] = [];
 
   return (
@@ -43,11 +44,16 @@ function Overview() {
                 Connect RecAssistant Bot
               </div>
               <p className="max-w-2xl text-sm text-muted-foreground">
-                Authorize our automation system inside <span className="font-medium text-foreground">{currentServer?.name || "your Discord server"}</span> to auto-announce scheduled recording events, capture dynamic server attendance, and run server tools directly.
+                Authorize our automation system inside{" "}
+                <span className="font-medium text-foreground">
+                  {guild?.name || "your Discord server"}
+                </span>{" "}
+                to auto-announce scheduled recording events, capture dynamic server attendance, and
+                run server tools directly.
               </p>
             </div>
-            <Button 
-              asChild 
+            <Button
+              asChild
               className="gap-2 shrink-0 bg-[#5865F2] hover:bg-[#4752C4] text-white font-medium"
             >
               <a href={BOT_INVITE_URL} target="_blank" rel="noopener noreferrer">
@@ -61,19 +67,12 @@ function Overview() {
 
       <div className="grid gap-4 md:grid-cols-3">
         {stats.map((s) => (
-          <Card
-            key={s.label}
-            className="relative overflow-hidden border-border/60 bg-panel p-5"
-          >
+          <Card key={s.label} className="relative overflow-hidden border-border/60 bg-panel p-5">
             <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                  {s.label}
-                </p>
-                <p className="mt-3 font-display text-4xl font-bold tracking-tight">
-                  {s.value}
-                </p>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground">{s.label}</p>
+                <p className="mt-3 font-display text-4xl font-bold tracking-tight">{s.value}</p>
                 <p className="mt-2 text-xs text-muted-foreground">{s.hint}</p>
               </div>
               <div className="rounded-lg border border-border/60 bg-background/40 p-2 text-primary">
@@ -98,8 +97,8 @@ function Overview() {
             <p className="font-medium">No activity yet</p>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
               Invite RecAssistant to your Discord and run{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5 text-xs">/start</code> to
-              log your first session.
+              <code className="rounded bg-muted px-1.5 py-0.5 text-xs">/start</code> to log your
+              first session.
             </p>
           </div>
         ) : (
