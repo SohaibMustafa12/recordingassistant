@@ -7,7 +7,7 @@ import { Session } from "@supabase/supabase-js";
 
 // Server Function to safely sync memberships bypassing RLS using supabaseAdmin
 const syncUserMemberships = createServerFn({ method: "POST" })
-  .validator(
+  .inputValidator(
     (data: {
       userId: string;
       username: string;
@@ -224,10 +224,7 @@ function AuthCallback() {
         // Sync memberships with our database via secure server function
         setStatusMessage("Linking memberships with registered recording crews...");
         await syncUserMemberships({
-          userId: user.id,
-          username,
-          avatar,
-          guilds,
+          data: { userId: user.id, username, avatar, guilds },
         });
 
         if (active) {
