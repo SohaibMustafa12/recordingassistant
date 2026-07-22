@@ -1,3 +1,5 @@
+import logoUrl from "@/assets/recassistant-logo.png";
+
 interface Props {
   className?: string;
 }
@@ -5,7 +7,7 @@ interface Props {
 export function ShieldLogo({ className }: Props) {
   return (
     <img
-      src="/recassistant-logo.jpg"
+      src={logoUrl}
       alt="RecAssistant logo"
       className={className}
       draggable={false}
@@ -13,3 +15,4 @@ export function ShieldLogo({ className }: Props) {
     />
   );
 }
+
