@@ -9,19 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardGuildIdRouteImport } from './routes/dashboard/$guildId'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
-import { Route as DashboardGuildIdSettingsRouteImport } from './routes/dashboard/$guildId/settings'
-import { Route as DashboardGuildIdSchedulingRouteImport } from './routes/dashboard/$guildId/scheduling'
-import { Route as DashboardGuildIdOverviewRouteImport } from './routes/dashboard/$guildId/overview'
+import { Route as DashboardGuildIdRouteImport } from './routes/dashboard/$guildId'
 import { Route as DashboardGuildIdAttendanceRouteImport } from './routes/dashboard/$guildId/attendance'
+import { Route as DashboardGuildIdOverviewRouteImport } from './routes/dashboard/$guildId/overview'
+import { Route as DashboardGuildIdSchedulingRouteImport } from './routes/dashboard/$guildId/scheduling'
+import { Route as DashboardGuildIdSettingsRouteImport } from './routes/dashboard/$guildId/settings'
 
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -29,14 +29,9 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardGuildIdRoute = DashboardGuildIdRouteImport.update({
-  id: '/dashboard/$guildId',
-  path: '/dashboard/$guildId',
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -44,16 +39,15 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardGuildIdSettingsRoute =
-  DashboardGuildIdSettingsRouteImport.update({
-    id: '/settings',
-    path: '/settings',
-    getParentRoute: () => DashboardGuildIdRoute,
-  } as any)
-const DashboardGuildIdSchedulingRoute =
-  DashboardGuildIdSchedulingRouteImport.update({
-    id: '/scheduling',
-    path: '/scheduling',
+const DashboardGuildIdRoute = DashboardGuildIdRouteImport.update({
+  id: '/dashboard/$guildId',
+  path: '/dashboard/$guildId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardGuildIdAttendanceRoute =
+  DashboardGuildIdAttendanceRouteImport.update({
+    id: '/attendance',
+    path: '/attendance',
     getParentRoute: () => DashboardGuildIdRoute,
   } as any)
 const DashboardGuildIdOverviewRoute =
@@ -62,10 +56,16 @@ const DashboardGuildIdOverviewRoute =
     path: '/overview',
     getParentRoute: () => DashboardGuildIdRoute,
   } as any)
-const DashboardGuildIdAttendanceRoute =
-  DashboardGuildIdAttendanceRouteImport.update({
-    id: '/attendance',
-    path: '/attendance',
+const DashboardGuildIdSchedulingRoute =
+  DashboardGuildIdSchedulingRouteImport.update({
+    id: '/scheduling',
+    path: '/scheduling',
+    getParentRoute: () => DashboardGuildIdRoute,
+  } as any)
+const DashboardGuildIdSettingsRoute =
+  DashboardGuildIdSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
     getParentRoute: () => DashboardGuildIdRoute,
   } as any)
 
@@ -149,11 +149,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -163,18 +163,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/$guildId': {
-      id: '/dashboard/$guildId'
-      path: '/dashboard/$guildId'
-      fullPath: '/dashboard/$guildId'
-      preLoaderRoute: typeof DashboardGuildIdRouteImport
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -184,18 +177,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/$guildId/settings': {
-      id: '/dashboard/$guildId/settings'
-      path: '/settings'
-      fullPath: '/dashboard/$guildId/settings'
-      preLoaderRoute: typeof DashboardGuildIdSettingsRouteImport
-      parentRoute: typeof DashboardGuildIdRoute
+    '/dashboard/$guildId': {
+      id: '/dashboard/$guildId'
+      path: '/dashboard/$guildId'
+      fullPath: '/dashboard/$guildId'
+      preLoaderRoute: typeof DashboardGuildIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/dashboard/$guildId/scheduling': {
-      id: '/dashboard/$guildId/scheduling'
-      path: '/scheduling'
-      fullPath: '/dashboard/$guildId/scheduling'
-      preLoaderRoute: typeof DashboardGuildIdSchedulingRouteImport
+    '/dashboard/$guildId/attendance': {
+      id: '/dashboard/$guildId/attendance'
+      path: '/attendance'
+      fullPath: '/dashboard/$guildId/attendance'
+      preLoaderRoute: typeof DashboardGuildIdAttendanceRouteImport
       parentRoute: typeof DashboardGuildIdRoute
     }
     '/dashboard/$guildId/overview': {
@@ -205,11 +198,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardGuildIdOverviewRouteImport
       parentRoute: typeof DashboardGuildIdRoute
     }
-    '/dashboard/$guildId/attendance': {
-      id: '/dashboard/$guildId/attendance'
-      path: '/attendance'
-      fullPath: '/dashboard/$guildId/attendance'
-      preLoaderRoute: typeof DashboardGuildIdAttendanceRouteImport
+    '/dashboard/$guildId/scheduling': {
+      id: '/dashboard/$guildId/scheduling'
+      path: '/scheduling'
+      fullPath: '/dashboard/$guildId/scheduling'
+      preLoaderRoute: typeof DashboardGuildIdSchedulingRouteImport
+      parentRoute: typeof DashboardGuildIdRoute
+    }
+    '/dashboard/$guildId/settings': {
+      id: '/dashboard/$guildId/settings'
+      path: '/settings'
+      fullPath: '/dashboard/$guildId/settings'
+      preLoaderRoute: typeof DashboardGuildIdSettingsRouteImport
       parentRoute: typeof DashboardGuildIdRoute
     }
   }
