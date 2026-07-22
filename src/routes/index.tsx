@@ -293,66 +293,89 @@ function LandingPage() {
 
   // Registering a new server on the platform
   const handleRegisterServer = async () => {
-    if (!newGuildId.trim() || !newGuildName.trim()) {
+    const trimmedGuildId = newGuildId.trim();
+    const trimmedGuildName = newGuildName.trim();
+
+    if (!trimmedGuildId || !trimmedGuildName) {
       toast.error("Please fill out both Server ID and Server Name.");
       return;
     }
 
-    if (!user) {
-      toast.error("Please log in first.");
+    if (!/^\d{5,25}$/.test(trimmedGuildId)) {
+      toast.error("Server ID must be a numeric Discord snowflake (5–25 digits).");
       return;
     }
 
-    const trimmedGuildId = newGuildId.trim();
+    // Re-check session to ensure we have an authenticated user before inserting
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const authUser = session?.user ?? user;
+
+    if (!authUser) {
+      toast.error("Please sign in with Discord first.");
+      return;
+    }
 
     setRegistering(true);
     try {
-      // 1. Insert guild settings record
+      // 1. Insert guild record (RLS requires owner_id = auth.uid())
       const { error: guildError } = await supabase.from("guilds").insert({
         id: trimmedGuildId,
-        name: newGuildName.trim(),
-        owner_id: user.id,
+        name: trimmedGuildName,
+        owner_id: authUser.id,
         prefix: "!",
       });
 
       if (guildError) {
+        console.error("Guild insert error:", guildError);
         if (guildError.code === "23505") {
           toast.error("This Server ID is already registered.");
-          setRegistering(false);
           return;
         }
-        throw guildError;
+        toast.error(
+          `Failed to register server: ${guildError.message}${
+            guildError.details ? ` (${guildError.details})` : ""
+          }`,
+        );
+        return;
       }
 
       // 2. Insert owner member record
-      const discordName = user.user_metadata?.full_name || user.user_metadata?.name || "Owner";
-      const discordAvatar = user.user_metadata?.avatar_url || "";
+      const discordName =
+        authUser.user_metadata?.full_name || authUser.user_metadata?.name || "Owner";
+      const discordAvatar = authUser.user_metadata?.avatar_url || "";
 
       const { error: memberError } = await supabase.from("members").insert({
-        user_id: user.id,
+        user_id: authUser.id,
         guild_id: trimmedGuildId,
         username: discordName,
         avatar: discordAvatar,
         role: "owner",
       });
 
-      if (memberError) throw memberError;
+      if (memberError) {
+        console.error("Member insert error:", memberError);
+        toast.error(`Server saved but failed to add you as owner: ${memberError.message}`);
+        return;
+      }
 
       toast.success("Server registered successfully!");
       setNewGuildId("");
       setNewGuildName("");
       setShowRegister(false);
-      await fetchJoinedServers(user.id);
+      await fetchJoinedServers(authUser.id);
 
       navigate({ to: `/dashboard/$guildId/overview`, params: { guildId: trimmedGuildId } });
     } catch (err) {
-      console.error(err);
+      console.error("Unexpected error registering server:", err);
       const errMsg = err instanceof Error ? err.message : "Failed to register server.";
       toast.error(errMsg);
     } finally {
       setRegistering(false);
     }
   };
+
 
   if (loading) {
     return (
