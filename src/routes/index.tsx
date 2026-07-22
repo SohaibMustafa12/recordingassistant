@@ -227,10 +227,21 @@ function LandingPage() {
       });
       if (error) throw error;
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : "Failed to initiate Discord login";
-      toast.error(errMsg);
+      const raw = err instanceof Error ? err.message : String(err);
+      const isProviderDisabled =
+        /provider is not enabled/i.test(raw) || /validation_failed/i.test(raw);
+      if (isProviderDisabled) {
+        toast.error(
+          "Discord sign-in isn't enabled yet. An admin must enable the Discord provider in the backend Auth settings (Authentication → Providers → Discord), then paste this app's callback URL into Discord's OAuth2 redirects.",
+          { duration: 10000 },
+        );
+      } else {
+        toast.error(raw || "Failed to initiate Discord login");
+      }
+      console.error("Discord OAuth error:", err);
     }
   };
+
 
   const handleLogout = async () => {
     try {
