@@ -1,4 +1,7 @@
-import logoUrl from "@/assets/recassistant-logo.png";
+import logoAsset from "@/assets/recassistant-logo.png.asset.json";
+
+const logoUrl = logoAsset.url;
+
 
 interface Props {
   className?: string;
