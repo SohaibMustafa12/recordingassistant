@@ -11,7 +11,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 // Server function to securely validate join code and add user as a member bypassing RLS issues with join codes
 const joinServerByCode = createServerFn({ method: "POST" })
-  .validator(
+  .inputValidator(
     (data: { userId: string; username: string; avatar: string | null; code: string }) => data,
   )
   .handler(async ({ data }) => {
