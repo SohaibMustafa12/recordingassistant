@@ -27,10 +27,14 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseClient() {
-  // Directly set to your active project (tymnibaiwcyrthqpxffq) to bypass old Lovable env variables
-  const SUPABASE_URL = "https://tymnibaiwcyrthqpxffq.supabase.co";
+  const SUPABASE_URL =
+    (import.meta.env.VITE_SUPABASE_URL as string | undefined) ??
+    (typeof process !== "undefined" ? (process.env.SUPABASE_URL as string | undefined) : undefined);
   const SUPABASE_PUBLISHABLE_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5bW5pYmFpd2N5cnRocXB4ZmZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MzQxNDMsImV4cCI6MjEwMDExMDE0M30.keoeiHA6OquVObbD9jqBGDFKpzjhkGcFWAIpi30Cvh4";
+    (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ??
+    (typeof process !== "undefined"
+      ? (process.env.SUPABASE_PUBLISHABLE_KEY as string | undefined)
+      : undefined);
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
