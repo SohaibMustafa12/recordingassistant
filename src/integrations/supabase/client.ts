@@ -1,4 +1,4 @@
-// Modified to directly point to project tymnibaiwcyrthqpxffq
+// Browser Supabase client. Reads the project URL/key from env — no hardcoded project refs.
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
