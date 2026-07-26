@@ -6,7 +6,24 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { inviteBot } from "@/lib/auth";
 import { Shield, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { User } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
+
+const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+async function waitForAvailableSession(): Promise<Session | null> {
+  for (let attempt = 0; attempt < 24; attempt++) {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error) throw error;
+    if (session) return session;
+    await wait(250);
+  }
+
+  return null;
+}
 
 interface GuildInfo {
   id: string;
@@ -104,19 +121,21 @@ function DashboardLayout() {
     let active = true;
 
     async function checkSession() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!active) return;
+      try {
+        const session = await waitForAvailableSession();
+        if (!active) return;
 
-      if (!session) {
-        // Not signed in at all
-        navigate({ to: "/", replace: true });
-        return;
+        if (!session) {
+          navigate({ to: "/", replace: true });
+          return;
+        }
+
+        setUser(session.user);
+        await fetchDashboardData(session.user.id);
+      } catch (error) {
+        console.error("Error checking dashboard session:", error);
+        if (active) navigate({ to: "/", replace: true });
       }
-
-      setUser(session.user);
-      await fetchDashboardData(session.user.id);
     }
 
     checkSession();
@@ -125,9 +144,9 @@ function DashboardLayout() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (!active) return;
-      if (!session) {
+      if (event === "SIGNED_OUT") {
         navigate({ to: "/", replace: true });
-      } else {
+      } else if (session) {
         setUser(session.user);
         fetchDashboardData(session.user.id);
       }
