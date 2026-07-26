@@ -32,11 +32,9 @@ async function resolveOAuthSession(setStatusMessage: (message: string) => void) 
 
   if (code) {
     setStatusMessage("Exchanging Discord authorization...");
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       exchangeError = error;
-    } else if (data.session) {
-      return data.session;
     }
   }
 
@@ -142,14 +140,14 @@ function AuthCallback() {
               replace: true,
             });
           } else {
-            navigate({ to: "/dashboard", replace: true });
+            navigate({ to: "/dashboard/", replace: true });
           }
         }
       } catch (err) {
         console.error("Error processing user session:", err);
         if (active) {
           toast.success("Signed in successfully!");
-          navigate({ to: "/dashboard", replace: true });
+          navigate({ to: "/dashboard/", replace: true });
         }
       }
     }
