@@ -1,132 +1,71 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
-import { createServerFn } from "@tanstack/react-start";
-import { Session } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
+import { syncUserMemberships } from "@/lib/auth-callback.functions";
 
-// Server Function to safely sync memberships bypassing RLS using supabaseAdmin
-const syncUserMemberships = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: {
-      userId: string;
-      username: string;
-      avatar: string | null;
-      guilds: Array<{
-        id: string;
-        name: string;
-        icon: string | null;
-        owner: boolean;
-        permissions: string;
-      }>;
-    }) => data,
-  )
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { userId, username, avatar, guilds } = data;
+const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
-    const guildIds = guilds.map((g) => g.id);
-    if (guildIds.length === 0) {
-      return { success: true, count: 0 };
+async function readVerifiedSession() {
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError) throw sessionError;
+  if (!session) return null;
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) return null;
+  return session;
+}
+
+async function resolveOAuthSession(setStatusMessage: (message: string) => void) {
+  const url = new URL(window.location.href);
+  const code = url.searchParams.get("code");
+  let exchangeError: unknown = null;
+
+  if (code) {
+    setStatusMessage("Exchanging Discord authorization...");
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      exchangeError = error;
     }
+  }
 
-    // 1. Get all guilds registered on our platform
-    const { data: registeredGuilds, error: guildsError } = await supabaseAdmin
-      .from("guilds")
-      .select("id")
-      .in("id", guildIds);
+  setStatusMessage("Waiting for secure session storage...");
+  for (let attempt = 0; attempt < 24; attempt++) {
+    const session = await readVerifiedSession();
+    if (session) return session;
+    await wait(250);
+  }
 
-    if (guildsError) {
-      console.error("Error fetching registered guilds:", guildsError);
-      throw new Error("Failed to fetch registered guilds");
-    }
-
-    const registeredGuildIds = new Set(registeredGuilds.map((g) => g.id));
-
-    // Filter guilds to only those registered in RecAssistant
-    const matchingGuilds = guilds.filter((g) => registeredGuildIds.has(g.id));
-
-    if (matchingGuilds.length === 0) {
-      return { success: true, count: 0 };
-    }
-
-    let joinedCount = 0;
-
-    // 2. For each matching guild, upsert a member record with proper role assignment
-    for (const guild of matchingGuilds) {
-      // Determine role:
-      // - If owner of discord guild: 'owner'
-      // - If administrator permissions (0x8 bit set): 'admin'
-      // - Else: 'crew'
-      let role: "owner" | "admin" | "crew" = "crew";
-
-      const isOwner = guild.owner;
-      const isAdmin = (BigInt(guild.permissions) & 0x8n) === 0x8n;
-
-      if (isOwner) {
-        role = "owner";
-      } else if (isAdmin) {
-        role = "admin";
-      }
-
-      // Check if membership already exists
-      const { data: existingMember, error: memberCheckError } = await supabaseAdmin
-        .from("members")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("guild_id", guild.id)
-        .maybeSingle();
-
-      if (memberCheckError) {
-        console.error(`Error checking membership for guild ${guild.id}:`, memberCheckError);
-        continue;
-      }
-
-      if (existingMember) {
-        // Update user details (username, avatar) if they changed, and upgrade role if appropriate
-        const updateData: { username: string; avatar: string | null; role?: string } = {
-          username,
-          avatar,
-        };
-
-        // If they became owner or admin and they had a lower role, upgrade them.
-        if (role === "owner" && existingMember.role !== "owner") {
-          updateData.role = "owner";
-        } else if (role === "admin" && existingMember.role === "crew") {
-          updateData.role = "admin";
-        }
-
-        const { error: updateError } = await supabaseAdmin
-          .from("members")
-          .update(updateData)
-          .eq("user_id", userId)
-          .eq("guild_id", guild.id);
-
-        if (updateError) {
-          console.error(`Error updating membership for guild ${guild.id}:`, updateError);
-        }
-      } else {
-        // Insert new membership record
-        const { error: insertError } = await supabaseAdmin.from("members").insert({
-          user_id: userId,
-          guild_id: guild.id,
-          username,
-          avatar: avatar || null,
-          role,
-        });
-
-        if (insertError) {
-          console.error(`Error inserting membership for guild ${guild.id}:`, insertError);
-        } else {
-          joinedCount++;
-        }
-      }
-    }
-
-    return { success: true, count: joinedCount };
-  });
+  if (exchangeError instanceof Error) throw exchangeError;
+  throw new Error("Unable to establish your Discord session. Please try signing in again.");
+}
 
 export const Route = createFileRoute("/auth/callback")({
+  head: () => ({
+    meta: [
+      { title: "Authenticating — RecAssistant" },
+      {
+        name: "description",
+        content: "Completing your Discord sign-in for the RecAssistant crew dashboard.",
+      },
+      { property: "og:title", content: "Authenticating — RecAssistant" },
+      {
+        property: "og:description",
+        content: "Completing your Discord sign-in for the RecAssistant crew dashboard.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AuthCallback,
 });
 
@@ -141,48 +80,15 @@ function AuthCallback() {
 
     async function handleAuthCallback() {
       try {
-        // Give Supabase client a moment to parse the hash/code from the URL
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-
-        if (sessionError) throw sessionError;
-
-        if (!session) {
-          // If no session found immediately, listen to auth state changes for a brief period
-          setStatusMessage("Verifying login details...");
-          let checkCount = 0;
-
-          const checkSession = async () => {
-            const {
-              data: { session: activeSession },
-            } = await supabase.auth.getSession();
-            if (activeSession) {
-              if (active) await processSession(activeSession);
-            } else if (checkCount < 10) {
-              checkCount++;
-              setTimeout(checkSession, 300);
-            } else {
-              if (active) {
-                toast.error("Unable to retrieve session. Please try logging in again.");
-                navigate({ to: "/" });
-              }
-            }
-          };
-
-          await checkSession();
-          return;
-        }
-
-        if (active) {
-          await processSession(session);
-        }
+        const session = await resolveOAuthSession(setStatusMessage);
+        if (active) await processSession(session);
       } catch (err) {
         console.error("Auth callback error:", err);
         if (active) {
-          toast.error("Authentication failed. Please try again.");
-          navigate({ to: "/" });
+          const message =
+            err instanceof Error ? err.message : "Authentication failed. Please try again.";
+          toast.error(message);
+          navigate({ to: "/", replace: true });
         }
       }
     }
@@ -204,7 +110,6 @@ function AuthCallback() {
         let guilds = [];
         if (providerToken) {
           try {
-            // Fetch the user's servers directly from Discord API
             const response = await fetch("https://discord.com/api/v10/users/@me/guilds", {
               headers: {
                 Authorization: `Bearer ${providerToken}`,
@@ -221,21 +126,28 @@ function AuthCallback() {
           }
         }
 
-        // Sync memberships with our database via secure server function
         setStatusMessage("Linking memberships with registered recording crews...");
-        await syncUserMemberships({
+        const syncResult = await syncUserMemberships({
           data: { userId: user.id, username, avatar, guilds },
         });
 
         if (active) {
           toast.success("Successfully signed in with Discord!");
-          navigate({ to: "/" });
+          if (syncResult.firstGuildId) {
+            navigate({
+              to: "/dashboard/$guildId/overview",
+              params: { guildId: syncResult.firstGuildId },
+              replace: true,
+            });
+          } else {
+            navigate({ to: "/dashboard/", replace: true });
+          }
         }
       } catch (err) {
         console.error("Error processing user session:", err);
         if (active) {
           toast.success("Signed in successfully!");
-          navigate({ to: "/" });
+          navigate({ to: "/dashboard/", replace: true });
         }
       }
     }
@@ -248,14 +160,14 @@ function AuthCallback() {
   }, [navigate]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0f1020] text-white px-4">
-      <div className="text-center space-y-6 max-w-sm">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-foreground">
+      <div className="max-w-sm space-y-6 text-center">
         <div className="relative">
-          <div className="h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
+          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-8 w-8 rounded-full bg-[#181930] flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-card">
               <svg
-                className="w-4 h-4 text-primary animate-pulse"
+                className="h-4 w-4 animate-pulse text-primary"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -265,8 +177,8 @@ function AuthCallback() {
           </div>
         </div>
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold tracking-tight">Authenticating...</h2>
-          <p className="text-sm text-muted-foreground animate-pulse transition-all duration-300">
+          <h1 className="text-xl font-semibold tracking-tight">Authenticating...</h1>
+          <p className="animate-pulse text-sm text-muted-foreground transition-all duration-300">
             {statusMessage}
           </p>
         </div>

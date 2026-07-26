@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardGuildIdRouteImport } from './routes/dashboard/$guildId'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as DashboardGuildIdSettingsRouteImport } from './routes/dashboard/$guildId/settings'
@@ -32,6 +33,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardGuildIdRoute = DashboardGuildIdRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/$guildId': typeof DashboardGuildIdRouteWithChildren
+  '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/$guildId/attendance': typeof DashboardGuildIdAttendanceRoute
   '/dashboard/$guildId/overview': typeof DashboardGuildIdOverviewRoute
   '/dashboard/$guildId/scheduling': typeof DashboardGuildIdSchedulingRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/$guildId': typeof DashboardGuildIdRouteWithChildren
+  '/dashboard': typeof DashboardIndexRoute
   '/dashboard/$guildId/attendance': typeof DashboardGuildIdAttendanceRoute
   '/dashboard/$guildId/overview': typeof DashboardGuildIdOverviewRoute
   '/dashboard/$guildId/scheduling': typeof DashboardGuildIdSchedulingRoute
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/$guildId': typeof DashboardGuildIdRouteWithChildren
+  '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/$guildId/attendance': typeof DashboardGuildIdAttendanceRoute
   '/dashboard/$guildId/overview': typeof DashboardGuildIdOverviewRoute
   '/dashboard/$guildId/scheduling': typeof DashboardGuildIdSchedulingRoute
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/auth/callback'
     | '/dashboard/$guildId'
+    | '/dashboard/'
     | '/dashboard/$guildId/attendance'
     | '/dashboard/$guildId/overview'
     | '/dashboard/$guildId/scheduling'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/auth/callback'
     | '/dashboard/$guildId'
+    | '/dashboard'
     | '/dashboard/$guildId/attendance'
     | '/dashboard/$guildId/overview'
     | '/dashboard/$guildId/scheduling'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/auth/callback'
     | '/dashboard/$guildId'
+    | '/dashboard/'
     | '/dashboard/$guildId/attendance'
     | '/dashboard/$guildId/overview'
     | '/dashboard/$guildId/scheduling'
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   DashboardGuildIdRoute: typeof DashboardGuildIdRouteWithChildren
+  DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/$guildId': {
@@ -238,6 +258,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   DashboardGuildIdRoute: DashboardGuildIdRouteWithChildren,
+  DashboardIndexRoute: DashboardIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
