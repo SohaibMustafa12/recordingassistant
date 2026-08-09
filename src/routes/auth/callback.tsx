@@ -128,7 +128,7 @@ function AuthCallback() {
 
         setStatusMessage("Linking memberships with registered recording crews...");
         const syncResult = await syncUserMemberships({
-          data: { userId: user.id, username, avatar, guilds },
+          data: { username, avatar, guilds },
         });
 
         if (active) {
