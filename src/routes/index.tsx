@@ -7,102 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { inviteBot } from "@/lib/auth";
 import { User } from "@supabase/supabase-js";
 import { ShieldLogo } from "@/components/ShieldLogo";
-import { createServerFn } from "@tanstack/react-start";
-
-// Server function to securely validate join code and add user as a member bypassing RLS issues with join codes
-const joinServerByCode = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: { userId: string; username: string; avatar: string | null; code: string }) => data,
-  )
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { userId, username, avatar, code } = data;
-
-    // 1. Look up code in join_codes table
-    const { data: codeData, error: codeError } = await supabaseAdmin
-      .from("join_codes")
-      .select("*")
-      .eq("code", code.trim())
-      .maybeSingle();
-
-    if (codeError) {
-      console.error("Error looking up join code:", codeError);
-      throw new Error("Database error occurred while looking up the invite code.");
-    }
-
-    if (!codeData) {
-      throw new Error("Invalid join code. Please contact your crew owner/admin.");
-    }
-
-    // 2. Check if join code has expired
-    if (codeData.expires_at && new Date(codeData.expires_at) < new Date()) {
-      throw new Error("This join code has expired.");
-    }
-
-    // 3. Check if join code use count is exceeded
-    if (codeData.max_uses && codeData.use_count >= codeData.max_uses) {
-      throw new Error("This join code has reached its maximum usage limit.");
-    }
-
-    // 4. Verify guild exists
-    const { data: guildData, error: guildError } = await supabaseAdmin
-      .from("guilds")
-      .select("id, name")
-      .eq("id", codeData.guild_id)
-      .maybeSingle();
-
-    if (guildError) {
-      console.error("Error checking guild existence:", guildError);
-      throw new Error("Database error checking the recording crew's status.");
-    }
-
-    if (!guildData) {
-      throw new Error("The recording crew server linked to this invite code does not exist.");
-    }
-
-    // 5. Check if user is already a member
-    const { data: existingMember, error: memberCheckError } = await supabaseAdmin
-      .from("members")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("guild_id", codeData.guild_id)
-      .maybeSingle();
-
-    if (memberCheckError) {
-      console.error("Error checking existing membership:", memberCheckError);
-      throw new Error("Failed to verify membership status.");
-    }
-
-    if (existingMember) {
-      return { success: true, guildId: codeData.guild_id, alreadyMember: true };
-    }
-
-    // 6. Join the user to the guild
-    const { error: insertError } = await supabaseAdmin.from("members").insert({
-      user_id: userId,
-      guild_id: codeData.guild_id,
-      username,
-      avatar,
-      role: codeData.role || "crew",
-    });
-
-    if (insertError) {
-      console.error("Error inserting member via invite code:", insertError);
-      throw new Error("Failed to add user to the crew roster.");
-    }
-
-    // 7. Increment code usage count
-    const { error: updateError } = await supabaseAdmin
-      .from("join_codes")
-      .update({ use_count: codeData.use_count + 1 })
-      .eq("code", code.trim());
-
-    if (updateError) {
-      console.error("Error updating use count for code:", code.trim(), updateError);
-    }
-
-    return { success: true, guildId: codeData.guild_id, alreadyMember: false };
-  });
+import { joinGuildByCode, provisionGuild } from "@/lib/guild-access.functions";
 
 import {
   Bot,
@@ -117,6 +22,16 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "RecAssistant — Discord Crew Dashboard" },
+      { name: "description", content: "Manage ERLC recording crews, schedules, attendance, and Discord server settings." },
+      { property: "og:title", content: "RecAssistant — Discord Crew Dashboard" },
+      { property: "og:description", content: "Manage ERLC recording crews, schedules, attendance, and Discord server settings." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: LandingPage,
 });
 
@@ -151,13 +66,11 @@ function LandingPage() {
 
     async function checkUser() {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { data: { user: verifiedUser } } = await supabase.auth.getUser();
         if (active) {
-          setUser(session?.user ?? null);
-          if (session?.user) {
-            await fetchJoinedServers(session.user.id);
+          setUser(verifiedUser);
+          if (verifiedUser) {
+            await fetchJoinedServers(verifiedUser.id);
           }
         }
       } catch (error) {
@@ -272,9 +185,8 @@ function LandingPage() {
       const discordName = user.user_metadata?.full_name || user.user_metadata?.name || "Gamer";
       const discordAvatar = user.user_metadata?.avatar_url || null;
 
-      const result = await joinServerByCode({
+      const result = await joinGuildByCode({
         data: {
-          userId: user.id,
           username: discordName,
           avatar: discordAvatar,
           code: joinCode.trim(),
@@ -290,8 +202,7 @@ function LandingPage() {
       await fetchJoinedServers(user.id);
       setJoinCode("");
 
-      // Navigate to overview of the newly joined server using string interpolation
-      navigate({ to: `/dashboard/$guildId/overview`, params: { guildId: result.guildId } });
+      navigate({ to: "/dashboard/$guildId/overview", params: { guildId: result.guildId } });
     } catch (err) {
       console.error("Join error:", err);
       const errMsg =
@@ -318,10 +229,8 @@ function LandingPage() {
     }
 
     // Re-check session to ensure we have an authenticated user before inserting
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const authUser = session?.user ?? user;
+    const { data: { user: verifiedUser } } = await supabase.auth.getUser();
+    const authUser = verifiedUser ?? user;
 
     if (!authUser) {
       toast.error("Please sign in with Discord first.");
@@ -330,46 +239,15 @@ function LandingPage() {
 
     setRegistering(true);
     try {
-      // 1. Insert guild record (RLS requires owner_id = auth.uid())
-      const { error: guildError } = await supabase.from("guilds").insert({
-        id: trimmedGuildId,
-        name: trimmedGuildName,
-        owner_id: authUser.id,
-        prefix: "!",
-      });
-
-      if (guildError) {
-        console.error("Guild insert error:", guildError);
-        if (guildError.code === "23505") {
-          toast.error("This Server ID is already registered.");
-          return;
-        }
-        toast.error(
-          `Failed to register server: ${guildError.message}${
-            guildError.details ? ` (${guildError.details})` : ""
-          }`,
-        );
-        return;
-      }
-
-      // 2. Insert owner member record
       const discordName =
         authUser.user_metadata?.full_name || authUser.user_metadata?.name || "Owner";
-      const discordAvatar = authUser.user_metadata?.avatar_url || "";
-
-      const { error: memberError } = await supabase.from("members").insert({
-        user_id: authUser.id,
-        guild_id: trimmedGuildId,
+      const discordAvatar = authUser.user_metadata?.avatar_url || null;
+      const result = await provisionGuild({ data: {
+        guildId: trimmedGuildId,
+        name: trimmedGuildName,
         username: discordName,
         avatar: discordAvatar,
-        role: "owner",
-      });
-
-      if (memberError) {
-        console.error("Member insert error:", memberError);
-        toast.error(`Server saved but failed to add you as owner: ${memberError.message}`);
-        return;
-      }
+      } });
 
       toast.success("Server registered successfully!");
       setNewGuildId("");
@@ -377,7 +255,7 @@ function LandingPage() {
       setShowRegister(false);
       await fetchJoinedServers(authUser.id);
 
-      navigate({ to: `/dashboard/$guildId/overview`, params: { guildId: trimmedGuildId } });
+      navigate({ to: "/dashboard/$guildId/overview", params: { guildId: result.guildId } });
     } catch (err) {
       console.error("Unexpected error registering server:", err);
       const errMsg = err instanceof Error ? err.message : "Failed to register server.";
@@ -588,7 +466,7 @@ function LandingPage() {
                             key={srv.guild_id}
                             onClick={() =>
                               navigate({
-                                to: `/dashboard/$guildId/overview`,
+                                to: "/dashboard/$guildId/overview",
                                 params: { guildId: guild.id },
                               })
                             }

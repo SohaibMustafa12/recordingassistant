@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type DiscordGuild = {
   id: string;
@@ -9,17 +10,18 @@ type DiscordGuild = {
 };
 
 export const syncUserMemberships = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(
     (data: {
-      userId: string;
       username: string;
       avatar: string | null;
       guilds: DiscordGuild[];
     }) => data,
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { userId, username, avatar, guilds } = data;
+    const { username, avatar, guilds } = data;
+    const userId = context.userId;
 
     const guildIds = guilds.map((guild) => guild.id);
     if (guildIds.length === 0) {
