@@ -19,7 +19,8 @@ export const provisionGuild = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { data: existing, error: existingError } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing, error: existingError } = await supabaseAdmin
       .from("guilds")
       .select("id, owner_id")
       .eq("id", data.guildId)
@@ -30,7 +31,7 @@ export const provisionGuild = createServerFn({ method: "POST" })
       throw new Error("This Discord server is already registered by another owner.");
     }
 
-    const { error: guildError } = await context.supabase.from("guilds").upsert(
+    const { error: guildError } = await supabaseAdmin.from("guilds").upsert(
       {
         id: data.guildId,
         name: data.name,
@@ -41,7 +42,7 @@ export const provisionGuild = createServerFn({ method: "POST" })
     );
     if (guildError) throw new Error(guildError.message);
 
-    const { error: memberError } = await context.supabase.from("members").upsert(
+    const { error: memberError } = await supabaseAdmin.from("members").upsert(
       {
         user_id: context.userId,
         guild_id: data.guildId,
@@ -51,7 +52,10 @@ export const provisionGuild = createServerFn({ method: "POST" })
       },
       { onConflict: "user_id,guild_id" },
     );
-    if (memberError) throw new Error(memberError.message);
+    if (memberError) {
+      if (!existing) await supabaseAdmin.from("guilds").delete().eq("id", data.guildId);
+      throw new Error(memberError.message);
+    }
 
     return { guildId: data.guildId };
   });

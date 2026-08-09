@@ -18,36 +18,15 @@ export const Route = createFileRoute("/dashboard/$guildId/attendance")({
   component: Attendance,
 });
 
-// Mock data reflecting realistic Liberty County Roleplay recording sessions
-const MOCK_LOGS = [
-  {
-    id: "log-1",
-    title: "💰 Bank Robbery & Custom Livery Showcase",
-    date: "Jul 18, 2026 - 8:00 PM",
-    host: "GameNGo",
-    attended: 14,
-    total: 18,
-    status: "Completed",
-  },
-  {
-    id: "log-2",
-    title: "🚨 High-Speed DOT Highway Chase Scenario",
-    date: "Jul 15, 2026 - 6:30 PM",
-    host: "FerranoCrimeFamily",
-    attended: 22,
-    total: 25,
-    status: "Completed",
-  },
-  {
-    id: "log-3",
-    title: "🔥 Fire Dept Major Training Incident Simulation",
-    date: "Jul 10, 2026 - 4:00 PM",
-    host: "CaptainJack",
-    attended: 11,
-    total: 12,
-    status: "Completed",
-  },
-];
+const attendanceLogs: {
+  id: string;
+  title: string;
+  date: string;
+  host: string;
+  attended: number;
+  total: number;
+  status: string;
+}[] = [];
 
 function Attendance() {
   const { isAdmin, guildId } = useDashboard();
@@ -96,6 +75,17 @@ function Attendance() {
       </div>
 
       <Card className="border-border/60 bg-panel overflow-hidden">
+        {attendanceLogs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+            <div className="mb-4 rounded-full bg-primary/10 p-4 text-primary">
+              <ClipboardList className="h-6 w-6" />
+            </div>
+            <p className="font-medium">No recordings hosted yet</p>
+            <p className="mt-1 max-w-md text-sm text-muted-foreground">
+              Invite the bot and use /start in your Discord to host your first shoot!
+            </p>
+          </div>
+        ) : (
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/40 hover:bg-muted/40">
@@ -108,7 +98,7 @@ function Attendance() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {MOCK_LOGS.map((l) => (
+            {attendanceLogs.map((l) => (
               <TableRow key={l.id} className="hover:bg-muted/20 transition-colors">
                 <TableCell className="font-medium text-foreground">{l.title}</TableCell>
                 <TableCell className="text-muted-foreground text-sm">{l.date}</TableCell>
@@ -141,6 +131,7 @@ function Attendance() {
             ))}
           </TableBody>
         </Table>
+        )}
       </Card>
     </div>
   );
