@@ -13,7 +13,7 @@ export const supabase = createClient<Database>(url, key, {
     storage: typeof window === "undefined" ? undefined : window.localStorage,
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true,
+    detectSessionInUrl: false,
     flowType: "pkce",
   },
 });

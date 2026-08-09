@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { createFileRoute, Outlet, useNavigate, useParams } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -72,6 +72,7 @@ function DashboardLayout() {
   const [role, setRole] = useState<"owner" | "admin" | "crew" | null>(null);
   const [loading, setLoading] = useState(true);
   const [notAMember, setNotAMember] = useState(false);
+  const sessionResolved = useRef(false);
 
   const fetchDashboardData = async (userId: string) => {
     try {
@@ -131,6 +132,7 @@ function DashboardLayout() {
         }
 
         setUser(session.user);
+        sessionResolved.current = true;
         await fetchDashboardData(session.user.id);
       } catch (error) {
         console.error("Error checking dashboard session:", error);
@@ -144,9 +146,10 @@ function DashboardLayout() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (!active) return;
-      if (event === "SIGNED_OUT") {
+      if (event === "SIGNED_OUT" && sessionResolved.current) {
         navigate({ to: "/", replace: true });
       } else if (session) {
+        sessionResolved.current = true;
         setUser(session.user);
         fetchDashboardData(session.user.id);
       }

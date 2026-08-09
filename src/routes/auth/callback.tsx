@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -31,6 +31,7 @@ async function resolveOAuthSession(setStatusMessage: (message: string) => void) 
   let exchangeError: unknown = null;
 
   if (code) {
+    window.history.replaceState({}, document.title, url.pathname);
     setStatusMessage("Exchanging Discord authorization...");
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
@@ -71,11 +72,14 @@ export const Route = createFileRoute("/auth/callback")({
 
 function AuthCallback() {
   const navigate = useNavigate();
+  const started = useRef(false);
   const [statusMessage, setStatusMessage] = useState(
     "Establishing secure authentication session...",
   );
 
   useEffect(() => {
+    if (started.current) return;
+    started.current = true;
     let active = true;
 
     async function handleAuthCallback() {
