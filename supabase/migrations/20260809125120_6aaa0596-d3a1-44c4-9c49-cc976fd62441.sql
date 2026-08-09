@@ -1,0 +1,13 @@
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.guilds TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.members TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.join_codes TO authenticated;
+GRANT ALL ON public.guilds TO service_role;
+GRANT ALL ON public.members TO service_role;
+GRANT ALL ON public.join_codes TO service_role;
+REVOKE ALL ON public.guilds FROM anon;
+REVOKE ALL ON public.members FROM anon;
+REVOKE ALL ON public.join_codes FROM anon;
+GRANT EXECUTE ON FUNCTION public.guild_role(text, uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_guild_member(text, uuid) TO authenticated, service_role;
+REVOKE EXECUTE ON FUNCTION public.guild_role(text, uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.is_guild_member(text, uuid) FROM PUBLIC, anon;
