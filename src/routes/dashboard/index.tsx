@@ -1,3 +1,4 @@
+import { ShiftWidget } from '../components/ShiftWidget'; 
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type { Session } from "@supabase/supabase-js";
