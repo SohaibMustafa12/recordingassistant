@@ -7,6 +7,7 @@ import { inviteBot } from "@/lib/auth";
 import { Shield, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Session, User } from "@supabase/supabase-js";
+import { ShiftWidget } from "@/components/ShiftWidget";
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
@@ -260,7 +261,13 @@ function DashboardLayout() {
                 </Button>
               </div>
             </header>
-            <main className="flex-1 p-6 md:p-10">
+            <main className="flex-1 p-6 md:p-10 space-y-6">
+              {/* Shift Control Widget loaded dynamically using current server guildId */}
+              <div className="max-w-md">
+                <ShiftWidget serverId={guildId} />
+              </div>
+
+              {/* Rest of the sub-route page content */}
               <Outlet />
             </main>
           </div>
